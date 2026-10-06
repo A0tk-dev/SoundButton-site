@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" id="favicon" type="image/png" href="icon-dark-64.png"><link rel="apple-touch-icon" href="icon-dark-180.png"><meta name="theme-color" content="#0b0d11"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("sb_theme2")||"dark";if(document.documentElement.dataset.theme==="light"){var f=document.getElementById("favicon");if(f)f.href="icon-light-64.png"}}catch(e){}try{var a=JSON.parse(localStorage.getItem("sb_a11y")||"{}"),r=document.documentElement;if(a.size&&a.size!=="1")r.style.zoom=a.size;if(a.motion||(a.motion===undefined&&matchMedia("(prefers-reduced-motion: reduce)").matches))r.classList.add("rm");if(a.contrast)r.classList.add("hc")}catch(e){}</script>
+<title>SoundButton</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#0b0d11;--panel:#13171e;--panel2:#181d25;--border:#2a313c;--border2:#3b4552;--text:#f5f7fa;--muted:#8d97a5;--danger:#ff6872}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Arial,"Noto Sans JP",sans-serif}
+body{background:radial-gradient(circle at 50% -20%,#202733 0,#0b0d11 48%)}
+button,input{font:inherit}button{cursor:pointer}
+header{height:68px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:30;background:rgba(11,13,17,.88);backdrop-filter:blur(18px);border-bottom:1px solid #171b22}
+.logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700}.logoIcon{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:#fff;color:#111}
+.account{padding:9px 14px;border:1px solid var(--border);border-radius:9px;background:#171b22;color:#e9edf2}
+main{width:min(1180px,calc(100% - 40px));margin:auto;padding:40px 0 80px}
+.pageHead{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:26px}
+h1{margin:0 0 7px;font-size:30px}.subtitle{margin:0;color:var(--muted);font-size:14px}
+.primary{border:0;border-radius:10px;padding:12px 17px;background:#fff;color:#111;font-weight:700}.primary:hover{opacity:.88}
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.card{position:relative;min-height:175px;padding:16px;display:flex;flex-direction:column;background:linear-gradient(145deg,#181d24,#12151a);border:1px solid var(--border);border-radius:15px;transition:.15s}
+.card:hover{transform:translateY(-2px);border-color:var(--border2)}.card.playing{border-color:#fff}
+.cardTop{display:flex;justify-content:space-between;gap:10px}.name{font-size:16px;font-weight:700;word-break:break-word}.more{width:30px;height:30px;border:0;border-radius:7px;background:transparent;color:#89919d;font-size:19px}.more:hover{background:#242932;color:#fff}
+.info{display:flex;gap:7px;margin-top:12px}.badge{padding:5px 8px;border-radius:6px;background:#222730;color:#aeb6c2;font-size:11px;font-weight:700}
+.play{width:100%;margin-top:auto;padding:11px;border:1px solid #303742;border-radius:9px;background:#20252d;color:#fff}.play:hover{background:#292f38}.play.active{background:#fff;color:#111}
+.empty{grid-column:1/-1;padding:75px 20px;text-align:center;border:1px dashed #343b46;border-radius:16px;color:#7c8490}.emptyIcon{font-size:28px;margin-bottom:12px}.emptyTitle{color:#b8bec8;font-weight:700;margin-bottom:6px}
+.controls{margin-top:18px;padding:16px 18px;display:flex;align-items:center;gap:14px;background:#13161c;border:1px solid var(--border);border-radius:14px}.volumeIcon{width:35px;height:35px;display:grid;place-items:center;background:#1e232b;border-radius:9px}.volumeBox{flex:1}.volumeHead{display:flex;justify-content:space-between;margin-bottom:7px;color:var(--muted);font-size:12px}
+input[type=range]{width:100%;appearance:none;height:5px;border-radius:99px;background:#2b313b}input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;border-radius:50%;background:#fff}
+.modalBg{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.72);backdrop-filter:blur(8px)}.modalBg.show{display:flex}
+.modal{width:min(520px,100%);max-height:92vh;overflow:auto;padding:24px;background:#15181f;border:1px solid #303640;border-radius:17px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.modalHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.modalHead h2{margin:0;font-size:20px}.close{width:32px;height:32px;border:0;border-radius:8px;background:#20252d;color:#aaa}
+.field{margin-bottom:18px}.label{display:block;margin-bottom:8px;font-size:13px;font-weight:700;color:#cbd0d8}.text{width:100%;padding:12px;border:1px solid #303640;border-radius:9px;outline:0;background:#0e1015;color:#fff}
+.drop{min-height:120px;padding:20px;display:flex;align-items:center;justify-content:center;text-align:center;border:1px dashed #3a414d;border-radius:12px;background:#0e1015;cursor:pointer}.drop:hover,.drop.drag{border-color:#737c89;background:#141820}.drop input{display:none}.fileName{margin-top:9px;color:#b6bdc7;font-size:12px;word-break:break-all}
+.keyPicker{min-height:50px;padding:9px 11px;display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid #303640;border-radius:9px;background:#0e1015}.keyPicker.waiting{border-color:#858e9b}.keyStatus{color:#7e8793;font-size:12px}.keyValue{min-width:65px;padding:7px 10px;text-align:center;border-radius:7px;background:#252b34;font-size:12px;font-weight:700}
+.modalButtons{display:flex;gap:9px;margin-top:22px}.modalButtons button{flex:1;padding:12px;border:0;border-radius:9px}.cancel{background:#272c35;color:#ddd}.confirm{background:#fff;color:#111;font-weight:700}
+.contextMenu{position:fixed;z-index:300;min-width:190px;padding:6px;display:none;background:#1a1e25;border:1px solid #363d48;border-radius:10px;box-shadow:0 15px 40px rgba(0,0,0,.4)}.contextMenu.show{display:block}.contextMenu button{width:100%;padding:9px 10px;text-align:left;border:0;border-radius:7px;background:transparent;color:#e1e5ea}.contextMenu button:hover{background:#282e37}.contextMenu .danger{color:#ff737b}
+.toast{position:fixed;right:20px;bottom:20px;z-index:500;padding:12px 15px;border:1px solid #3b424d;border-radius:10px;background:#20252d;color:#e7ebef;font-size:13px;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translateY(0)}
+.editor{width:min(820px,100%)}.editorBody{display:grid;gap:18px}.waveWrap{background:#0b0e13;border:1px solid #303640;border-radius:12px;padding:12px}.wave{width:100%;height:180px;display:block;border-radius:8px;background:#0a0c10;cursor:crosshair}.timeRow{display:grid;grid-template-columns:1fr 1fr;gap:12px}.timeBox{padding:11px;border:1px solid #303640;border-radius:9px;background:#0e1015}.timeBox label{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}.timeBox input{width:100%;border:0;outline:0;background:transparent;color:#fff;font-size:15px}.rangeRow{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}.rangeLabel{color:#cbd0d8;font-size:13px}.rangeValue{min-width:60px;text-align:right;color:#9da6b3;font-size:12px}.editorActions{display:flex;flex-wrap:wrap;gap:9px}.editorActions button{padding:11px 14px;border:0;border-radius:9px}.secondary{background:#272c35;color:#ddd}.download{background:#fff;color:#111;font-weight:700}.editorHint{color:#7f8997;font-size:12px;line-height:1.6}
+.exportRow{display:grid;grid-template-columns:1fr 1fr;gap:10px}.exportRow button{padding:12px;border:0;border-radius:9px;font-weight:700}.exportWav{background:#252b34;color:#fff}.exportMp3{background:#fff;color:#111}
+@media(max-width:700px){header{padding:0 16px}main{width:calc(100% - 24px);padding-top:28px}.pageHead{align-items:stretch;flex-direction:column}.primary{width:100%}.board{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.timeRow,.exportRow{grid-template-columns:1fr}}
+@media(max-width:430px){.board{grid-template-columns:1fr}}
+.account{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.links{display:flex;justify-content:space-between;margin-top:16px;font-size:13px}.links a,.tabs a{color:#aeb6c2;cursor:pointer;text-decoration:underline}
+.err{min-height:18px;margin-top:4px;color:var(--danger);font-size:13px}.chk{display:flex;gap:8px;align-items:center;font-size:13px;color:#cbd0d8}
+.tabs{display:flex;gap:6px;margin-bottom:18px}.tabs a{flex:1;text-align:center;padding:9px;border-radius:8px;background:#20252d;text-decoration:none}.tabs a.on{background:#fff;color:#111;font-weight:700}
+.avatar{width:56px;height:56px;border-radius:50%;background:#fff;color:#111;display:grid;place-items:center;font-size:24px;font-weight:700}
+.prof{display:flex;gap:14px;align-items:center;margin-bottom:18px}.sub{color:var(--muted);font-size:12px;margin-top:3px}.ok{color:#7ee2a0}.note{color:#9da6b3;font-size:13px;line-height:1.7;margin-bottom:14px}
+.dangerBtn{background:#ff6872!important;color:#111!important;font-weight:700}
+#mail{position:fixed;top:78px;right:16px;z-index:600;width:min(340px,calc(100% - 32px));display:none;background:#1a1e25;border:1px solid #4a5260;border-radius:12px;box-shadow:0 15px 40px rgba(0,0,0,.5);font-size:13px}#mail.show{display:block}
+.mailHead{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #303640;font-weight:700}.mailHead button{border:0;background:transparent;color:#aaa}
+.mailBody{padding:12px;white-space:pre-line;line-height:1.7}.mailNote{padding:0 12px 12px;color:#7f8997;font-size:11px}
+.bar{height:8px;background:#272d36;border-radius:99px;overflow:hidden;margin:6px 0}.bar i{display:block;height:100%;width:0;background:#7ee2a0;transition:width .3s}.bar i.warn{background:#ffb454}.bar i.full{background:#ff6872}
+.pcard{border:1px solid #303640;border-radius:12px;padding:12px;margin-bottom:10px;background:#171b21}
+.tag{display:inline-block;background:#262c36;border-radius:99px;padding:2px 9px;font-size:12px;margin:6px 6px 0 0;cursor:pointer;color:#cbd0d8}
+.prow{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.sbtn{border:1px solid #3a424d;background:#20252d;color:#fff;border-radius:8px;padding:7px 11px;cursor:pointer;font-size:13px}
+#soundModal{z-index:130}
+#legalBg{z-index:140}a[data-legal]{cursor:pointer;text-decoration:underline}
+html[data-theme=light] body{background:radial-gradient(circle at 50% -20%,#e4eaf3 0,#f4f6f9 55%)}
+html[data-theme=light] header{background:rgba(255,255,255,.9);border-bottom-color:#e2e6ec}
+html[data-theme=light] .account{background:#fff;color:#1c222b}
+html[data-theme=light] .logoIcon{background:#161a21;color:#fff}
+html[data-theme=light] .primary,html[data-theme=light] .confirm,html[data-theme=light] .download,html[data-theme=light] .exportMp3,html[data-theme=light] .play.active,html[data-theme=light] .tabs a.on,html[data-theme=light] .avatar{background:#161a21;color:#fff}
+html[data-theme=light] .card{background:linear-gradient(145deg,#fff,#f5f7fa)}
+html[data-theme=light] .card.playing{border-color:#161a21}
+html[data-theme=light] .badge{background:#eceff4;color:#505a68}
+html[data-theme=light] .more{color:#7b8492}
+html[data-theme=light] .more:hover{background:#eceff4;color:#111}
+html[data-theme=light] .play{background:#f1f3f6;color:#161a21;border-color:#dfe3ea}
+html[data-theme=light] .play:hover{background:#e6e9ef}
+html[data-theme=light] .empty{border-color:#cfd5de;color:#7b8492}
+html[data-theme=light] .emptyTitle{color:#4a5360}
+html[data-theme=light] .controls{background:#fff}
+html[data-theme=light] .volumeIcon{background:#eef1f5}
+html[data-theme=light] input[type=range]{background:#d5dae2}
+html[data-theme=light] input[type=range]::-webkit-slider-thumb{background:#161a21}
+html[data-theme=light] .modalBg{background:rgba(20,26,38,.45)}
+html[data-theme=light] .modal{background:#fff;border-color:#dfe3ea;box-shadow:0 30px 80px rgba(30,40,60,.25)}
+html[data-theme=light] .close,html[data-theme=light] .cancel,html[data-theme=light] .secondary,html[data-theme=light] .exportWav{background:#eceff4;color:#2b323c}
+html[data-theme=light] .label,html[data-theme=light] .rangeLabel,html[data-theme=light] .chk{color:#3a424d}
+html[data-theme=light] .text,html[data-theme=light] .timeBox,html[data-theme=light] .keyPicker{background:#f6f8fb;border-color:#d7dce4;color:#161a21}
+html[data-theme=light] .timeBox input{color:#161a21}
+html[data-theme=light] .drop{background:#f6f8fb;border-color:#c9ced8}
+html[data-theme=light] .drop:hover,html[data-theme=light] .drop.drag{background:#eef2f7;border-color:#9aa3b0}
+html[data-theme=light] .keyValue{background:#e6e9ef}
+html[data-theme=light] .contextMenu{background:#fff;border-color:#dfe3ea;box-shadow:0 15px 40px rgba(30,40,60,.2)}
+html[data-theme=light] .contextMenu button{color:#2b323c}
+html[data-theme=light] .contextMenu button:hover{background:#eef1f5}
+html[data-theme=light] .toast{background:#fff;color:#1c222b;border-color:#dfe3ea}
+html[data-theme=light] .waveWrap{background:#f6f8fb;border-color:#dfe3ea}
+html[data-theme=light] .wave{background:#fff}
+html[data-theme=light] .tabs a{background:#eceff4;color:#4a5360}
+html[data-theme=light] .links a{color:#4a5360}
+html[data-theme=light] .pcard{background:#f8fafc;border-color:#dfe3ea}
+html[data-theme=light] .tag{background:#e8ecf2;color:#3a424d}
+html[data-theme=light] .sbtn{background:#fff;color:#161a21;border-color:#cfd5de}
+html[data-theme=light] .note,html[data-theme=light] .sub,html[data-theme=light] .editorHint,html[data-theme=light] .keyStatus{color:#6a7381}
+html[data-theme=light] #mail{background:#fff;border-color:#cfd5de}
+html[data-theme=light] .mailHead{border-color:#e2e6ec}
+html[data-theme=light] .bar{background:#e2e6ec}
+#tabbar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:90;background:var(--panel);border-top:1px solid var(--border);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+#tabbar button{flex:1;position:relative;border:0;background:transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:20px;padding:4px 0;min-height:48px}#tabbar button span{font-size:10px}
+#tabbar i{position:absolute;top:2px;left:calc(50% + 6px);min-width:16px;height:16px;border-radius:99px;background:var(--danger);color:#fff;font-size:10px;font-style:normal;display:none;align-items:center;justify-content:center}
+*{-webkit-tap-highlight-color:transparent}button{touch-action:manipulation}body{overscroll-behavior-y:none}
+header{padding-top:env(safe-area-inset-top);height:calc(68px + env(safe-area-inset-top))}
+@media(max-width:700px){
+#tabbar{display:flex}body{padding-bottom:calc(72px + env(safe-area-inset-bottom))}#pubBtn,#accountBtn,#notifBtn,#setBtn{display:none}
+header{height:calc(56px + env(safe-area-inset-top))}.pageHead h1{font-size:24px}
+#addButton{position:fixed;right:16px;bottom:calc(80px + env(safe-area-inset-bottom));z-index:80;width:auto;border-radius:99px;padding:14px 20px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.modalBg{align-items:flex-end;padding:0}.modal{width:100%;max-height:90vh;border-radius:20px 20px 0 0;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+.toast{left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom))}
+input,select,textarea,.text{font-size:16px}.play{min-height:46px}.more{width:40px;height:40px}.sbtn{padding:10px 13px}
+}
+html[data-theme=light]{--bg:#f4f6f9;--panel:#fff;--panel2:#f1f3f6;--border:#dfe3ea;--border2:#c9ced8;--text:#161a21;--muted:#6a7381;--danger:#d92d3a}
+html[data-theme=light] .fileName,html[data-theme=light] .rangeValue{color:#5a6472}html[data-theme=light] .ok{color:#15803d}
+#dlgBg{z-index:700}
+.kcap{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:34px;padding:0 6px;margin:2px;border-radius:7px;border:1px solid var(--border);font-size:12px;color:var(--muted)}.kcap.u{background:#1f6f4a;color:#fff;border-color:#2a8f61}.kcap.d{background:#a32a35;color:#fff;border-color:#c0394a}
+html.rm *,html.rm *::before,html.rm *::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+html.hc{--border:#9aa3b0;--border2:#c0c8d4;--muted:#d3d9e2}html[data-theme=light].hc{--border:#4a5260;--border2:#2f3640;--muted:#2f3640}html.hc .card,html.hc .modal{border-width:2px}
+#setBox{max-height:88vh;overflow-y:auto}
+.card.dragging{user-select:none;cursor:grabbing}.card.ph{border:2px dashed var(--border2);background:transparent!important;box-shadow:none}
+@media(max-width:700px){#recBtn{background:var(--panel);position:fixed;right:16px;bottom:calc(140px + env(safe-area-inset-bottom));z-index:80;border-radius:99px;padding:12px 16px;box-shadow:0 8px 24px rgba(0,0,0,.35)}}
+.headActions{display:flex;gap:10px;align-items:center}
+.ghost{border:1px solid var(--border2);border-radius:10px;padding:12px 17px;background:transparent;color:var(--text);font-weight:700}.ghost:hover{background:var(--panel2)}
+img.logoIcon{display:block;background:none!important;border-radius:0;width:34px;height:34px;object-fit:contain}.li-light{display:none!important}html[data-theme=light] .li-dark{display:none!important}html[data-theme=light] .li-light{display:block!important}
+html.ufont body,html.ufont button,html.ufont input,html.ufont select,html.ufont textarea{font-family:"SBUser",-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif!important}
+@media(max-width:700px){#betaBtn{padding:8px 10px;font-size:12px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><img class="logoIcon li-dark" src="icon-dark-64.png" alt=""><img class="logoIcon li-light" src="icon-light-64.png" alt=""><span>SoundButton</span></div>
+  <div style="display:flex;gap:8px"><button class="account" id="setBtn">⚙️</button><button class="account" id="betaBtn">試験運用機能</button><button class="account" id="themeBtn">🌙</button><button class="account" id="notifBtn">🔔<span id="notifN"></span></button><button class="account" id="pubBtn">🌐 公開サウンド</button><button class="account" id="accountBtn">👤 ログイン</button></div>
+</header>
+
+<main>
+  <div class="pageHead">
+    <div><h1>マイサウンドボード</h1><p class="subtitle">キーを押すだけで登録したサウンドを再生できます。</p></div>
+    <div class="headActions"><button class="primary" id="addButton">＋ サウンドを追加</button><button class="ghost" id="recBtn">録音して追加</button></div>
+  </div>
+  <div class="board" id="board"></div>
+  <div class="controls">
+    <div class="volumeIcon">🔊</div>
+    <div class="volumeBox">
+      <div class="volumeHead"><span>マスター音量</span><span id="volumeText">100%</span></div>
+      <input type="range" id="volume" min="0" max="100" value="100">
+    </div>
+  </div>
+</main>
+
+<div class="modalBg" id="soundModal">
+  <div class="modal">
+    <div class="modalHead"><h2 id="modalTitle">サウンドを追加</h2><button class="close" id="closeSound">×</button></div>
+    <div class="field">
+      <label class="label">サウンド名</label>
+      <input class="text" id="soundName" maxlength="80" placeholder="例：拍手">
+    </div>
+    <div class="field">
+      <label class="label">音声ファイル</label>
+      <label class="drop" id="dropArea">
+        <input type="file" id="soundFile" accept=".mp3,.wav,.mp4,audio/mpeg,audio/wav,audio/wave,audio/mp4,video/mp4">
+        <div><div style="font-size:25px;margin-bottom:7px">📁</div><div style="font-size:13px;font-weight:700">ファイルを選択</div><div style="margin-top:5px;color:#777f8b;font-size:11px">MP3 / WAV / MP4 またはドラッグ＆ドロップ</div><div class="fileName" id="fileName"></div></div>
+      </label>
+    </div>
+    <div class="field">
+      <label class="label">再生キー</label>
+      <div class="keyPicker" id="keyPicker"><span class="keyStatus" id="keyStatus">クリックして、キー（Ctrl / Alt / Shift＋1キーも可）を押してください</span><span class="keyValue" id="keyValue">未設定</span></div>
+      <div class="prow" style="margin-top:8px"><button type="button" class="sbtn" id="skipKey">キーを設定しない（スキップ）</button></div>
+      <div class="note" style="margin-top:6px">スマホなど、キーボードがないときは、スキップして追加できます。キーは、あとから編集で設定できます。</div>
+    </div>
+    <div class="modalButtons"><button type="button" class="cancel" id="cancelSound">キャンセル</button><button type="button" class="confirm" id="saveSoundButton">保存</button></div>
+  </div>
+</div>
+
+<div class="modalBg" id="editorModal">
+  <div class="modal editor">
+    <div class="modalHead"><h2>🎚️ 音声を編集</h2><button class="close" id="closeEditor">×</button></div>
+    <div class="editorBody">
+      <div class="waveWrap"><canvas class="wave" id="waveCanvas"></canvas></div>
+      <div class="timeRow">
+        <div class="timeBox"><label>開始位置（秒）</label><input type="number" id="startTime" min="0" step="0.01" value="0"></div>
+        <div class="timeBox"><label>終了位置（秒）</label><input type="number" id="endTime" min="0" step="0.01" value="0"></div>
+      </div>
+      <div>
+        <div class="rangeRow"><span class="rangeLabel">フェードイン</span><span class="rangeValue" id="fadeInText">0.00 秒</span></div>
+        <input type="range" id="fadeIn" min="0" max="10" step="0.01" value="0">
+      </div>
+      <div>
+        <div class="rangeRow"><span class="rangeLabel">フェードアウト</span><span class="rangeValue" id="fadeOutText">0.00 秒</span></div>
+        <input type="range" id="fadeOut" min="0" max="10" step="0.01" value="0">
+      </div>
+      <div class="editorActions">
+        <button class="secondary" id="previewOriginal">▶ 元音声</button>
+        <button class="secondary" id="previewEdited">▶ 編集後をプレビュー</button>
+      </div>
+      <div class="editorHint">波形上の緑（開始）と赤（終了）の線をドラッグして開始・終了位置を調整できます。クリックで開始位置、Shift＋クリックで終了位置も設定できます。フェードの効果は黄色の線と波形の形で確認できます。「上書き保存」を押すと、元のサウンド（名前・キー・位置はそのまま）の音声が編集後の内容に置き換わります。</div>
+      <div class="exportRow">
+        <button class="exportWav" id="saveEdited">上書き保存</button>
+        <button class="download" id="downloadWav">WAVでダウンロード</button>
+      </div>
+      <button class="download" id="downloadMp3" style="width:100%;padding:12px;border:0;border-radius:9px;font-weight:700">MP3でダウンロード</button>
+    </div>
+  </div>
+</div>
+
+<footer style="text-align:center;padding:28px 12px;color:#8a93a0;font-size:12px"><a data-legal="terms">利用規約</a> ・ <a data-legal="privacy">プライバシーポリシー</a> ・ <a data-legal="copyright">著作権・削除請求</a> ・ <a href="errors.html" target="_blank" rel="noopener" style="color:inherit">エラーコード</a> ・ <a href="https://discord.gg/bUBHtz7wdF" target="_blank" rel="noopener noreferrer" style="color:inherit">Discord</a></footer>
+<div class="modalBg" id="legalBg"><div class="modal" id="legalBox" style="max-width:640px"></div></div>
+<div class="modalBg" id="authBg"><div class="modal" id="authBox"></div></div>
+<div class="modalBg" id="acctBg"><div class="modal" id="acctBox"></div></div>
+<div class="modalBg" id="pubBg"><div class="modal" id="pubBox" style="max-width:640px"></div></div>
+<div class="modalBg" id="pubSetBg"><div class="modal" id="pubSetBox"></div></div>
+<div class="modalBg" id="notifBg"><div class="modal" id="notifBox"></div></div>
+<div class="modalBg" id="shareBg"><div class="modal" id="shareBox"></div></div>
+<div class="modalBg" id="boardBg"><div class="modal" id="boardBox"></div></div>
+<nav id="tabbar"><button data-t="board">🔊<span>ボード</span></button><button data-t="pub">🌐<span>公開</span></button><button data-t="notif">🔔<span>通知</span><i id="notifN2"></i></button><button data-t="acct">👤<span>アカウント</span></button><button data-t="set">⚙️<span>設定</span></button></nav>
+<div class="modalBg" id="setBg"><div class="modal" id="setBox"></div></div>
+<div class="modalBg" id="keyBg"><div class="modal" id="keyBox"></div></div>
+<div class="modalBg" id="admBg"><div class="modal" id="admBox" style="max-width:680px"></div></div>
+<input type="file" id="fontFile" accept=".otf,.ttf,.ttc" hidden>
+<input type="file" id="bkFile" accept=".zip,application/zip" hidden>
+<div class="modalBg" id="recBg"><div class="modal" id="recBox"></div></div>
+<div class="modalBg" id="betaBg"><div class="modal" id="betaBox"></div></div>
+<div class="modalBg" id="dlgBg"><div class="modal" id="dlgBox" style="max-width:420px"></div></div>
+<div id="mail"></div>
+<div class="contextMenu" id="contextMenu">
+  <button id="editSound">✏️ 編集</button>
+  <button id="editAudio">🎚️ 音声を編集</button>
+  <button id="publishSound">🌐 公開設定</button>
+  <button id="duplicateSound">📋 複製</button>
+  <button id="moveUp">↑ 上へ移動</button>
+  <button id="moveDown">↓ 下へ移動</button>
+  <button class="danger" id="deleteSound">🗑️ 削除</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+const DB_NAME="SoundButtonDB",DB_VERSION=3,USERS="users",STORE="sounds",SETTINGS="settings";
+const ownerKey=()=>currentUser?currentUser.id:"guest";
+let keySkipped=false,currentUser=null,moveFlag=false,remember=false,pending=null,db,sounds=[],selectedFile=null,selectedKey=null,waitingKey=false,editingId=null,contextId=null,currentAudio=null,masterVolume=1;
+let editorSound=null,editorBuffer=null,editorSource=null,currentId=null,stopCleanup=null;
+
+const $=id=>document.getElementById(id);
+const board=$("board"),soundModal=$("soundModal"),editorModal=$("editorModal"),canvas=$("waveCanvas"),ctx=canvas.getContext("2d");
+
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open(DB_NAME,DB_VERSION);
+    req.onupgradeneeded=e=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE,{keyPath:"id"});
+      if(!d.objectStoreNames.contains(SETTINGS)) d.createObjectStore(SETTINGS,{keyPath:"key"});
+      if(!d.objectStoreNames.contains(USERS)) d.createObjectStore(USERS,{keyPath:"email"});
+    };
+    req.onsuccess=e=>{db=e.target.result;resolve(db)};
+    req.onerror=()=>reject(req.error);
+  });
+}
+function tx(store,mode){return db.transaction(store,mode).objectStore(store)}
+function getAll(){return new Promise((res,rej)=>{const r=tx(STORE,"readonly").getAll();r.onsuccess=()=>res(r.result.filter(s=>(s.owner||"guest")===ownerKey()).sort((a,b)=>(a.order||0)-(b.order||0)));r.onerror=()=>rej(r.error)})}
+function putSound(s){return new Promise((res,rej)=>{const t=db.transaction(STORE,"readwrite");t.objectStore(STORE).put(s);t.oncomplete=res;t.onerror=()=>rej(t.error)})}
+function putMany(list){return new Promise((res,rej)=>{const t=db.transaction(STORE,"readwrite"),st=t.objectStore(STORE);list.forEach(x=>st.put(x));t.oncomplete=res;t.onerror=()=>rej(t.error)})}
+function delSound(id){return new Promise((res,rej)=>{const t=db.transaction(STORE,"readwrite");t.objectStore(STORE).delete(id);t.oncomplete=res;t.onerror=()=>rej(t.error)})}
+function setSetting(key,value){return new Promise((res,rej)=>{const t=db.transaction(SETTINGS,"readwrite");t.objectStore(SETTINGS).put({key,value});t.oncomplete=res;t.onerror=()=>rej(t.error)})}
+function getSetting(key){return new Promise((res,rej)=>{const r=tx(SETTINGS,"readonly").get(key);r.onsuccess=()=>res(r.result?.value??null);r.onerror=()=>rej(r.error)})}
+
+(async()=>{
+  try{
+    await openDB();try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(_){}const u0=await restore();if(u0){currentUser=u0;try{if(localStorage.getItem("sb_oauth_move")==="1"){localStorage.removeItem("sb_oauth_move");await claimLegacy(u0.id)}localStorage.removeItem("sb_oauth_rem")}catch(_){}}sounds=await getAll();
+    const v=await getSetting("volume");if(v!==null){masterVolume=v;$("volume").value=Math.round(v*100);$("volumeText").textContent=Math.round(v*100)+"%"}
+    render();updateHeader();if(currentUser)cloudSync();loadUserFont();
+  }catch(e){console.error(e);toast("保存領域を初期化できませんでした。")}
+})();
+
+function render(){
+  board.innerHTML="";
+  if(!sounds.length){board.innerHTML='<div class="empty"><div class="emptyIcon">🔊</div><div class="emptyTitle">サウンドがありません</div><div>「サウンドを追加」から音声を登録してください。</div></div>';return}
+  sounds.forEach(s=>{
+    const card=document.createElement("div");card.className="card";card.dataset.id=s.id;
+    const top=document.createElement("div");top.className="cardTop";
+    const name=document.createElement("div");name.className="name";name.textContent=s.name;
+    const more=document.createElement("button");more.className="more";more.textContent="⋮";
+    more.onclick=e=>{e.stopPropagation();openMenu(s,e)};
+    top.append(name,more);
+    const info=document.createElement("div");info.className="info";
+    const key=document.createElement("span");key.className="badge";key.textContent=formatKey(s.key)||"未設定";
+    const ext=document.createElement("span");ext.className="badge";ext.textContent=extOf(s.fileName);
+    info.append(key,ext);
+    const play=document.createElement("button");play.className="play";play.textContent="▶  再生";play.onclick=()=>playSound(s,true);
+    if(currentAudio&&currentId===s.id){card.classList.add("playing");play.classList.add("active");play.textContent="■  再生中"}
+    card.append(top,info,play);board.appendChild(card);
+  });
+}
+function formatKey(c){
+  if(!c)return"";
+  const m={Space:"SPACE",Enter:"ENTER",Escape:"ESC",Tab:"TAB",Backspace:"BACKSPACE",ArrowUp:"↑",ArrowDown:"↓",ArrowLeft:"←",ArrowRight:"→",ShiftLeft:"SHIFT",ShiftRight:"SHIFT",ControlLeft:"CTRL",ControlRight:"CTRL",AltLeft:"ALT",AltRight:"ALT"};
+  return m[c]||c.replace("Key","").replace("Digit","");
+}
+function extOf(n){return (n?.split(".").pop()||"AUDIO").toUpperCase()}
+function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random()}
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.classList.remove("show"),2600)}
+
+$("addButton").onclick=()=>openSoundModal();
+$("closeSound").onclick=$("cancelSound").onclick=()=>soundModal.classList.remove("show");
+$("soundModal").onclick=e=>{if(e.target===soundModal)soundModal.classList.remove("show")};
+
+function openSoundModal(id=null,autoKey=false){
+  editingId=id;selectedFile=null;waitingKey=false;
+  const s=id?sounds.find(x=>x.id===id):null;
+  $("modalTitle").textContent=s?"サウンドを編集":"サウンドを追加";
+  $("soundName").value=s?.name||"";$("soundFile").value="";
+  $("fileName").textContent=s?`現在のファイル：${s.fileName}`:"";
+  selectedKey=s?.key||null;keySkipped=!!(s&&!s.key);$("keyStatus").textContent=s?"現在のキー":"クリックして、キー（Ctrl / Alt / Shift＋1キーも可）を押してください";$("keyValue").textContent=s?formatKey(s.key):"未設定";
+  $("keyPicker").classList.remove("waiting");soundModal.style.zIndex=130;soundModal.classList.add("show");
+  if(autoKey){$("modalTitle").textContent="再生キーを設定";waitingKey=true;$("keyPicker").classList.add("waiting");$("keyStatus").textContent="キーを押してください…";$("keyValue").textContent="入力待ち"}
+}
+$("soundFile").addEventListener("change", e=>{
+  const file=e.target.files && e.target.files[0];
+  if(file) selectFile(file);
+});
+function validFile(f){return /\.(mp3|wav|mp4)$/i.test(f.name)}
+function selectFile(f){if(!validFile(f)){toast("MP3 / WAV / MP4 のみ対応しています。");return}selectedFile=f;$("fileName").textContent="✓ "+f.name}
+$("dropArea").ondragover=e=>{e.preventDefault();$("dropArea").classList.add("drag")};
+$("dropArea").ondragleave=()=>$("dropArea").classList.remove("drag");
+$("dropArea").ondrop=e=>{e.preventDefault();$("dropArea").classList.remove("drag");if(e.dataTransfer.files[0])selectFile(e.dataTransfer.files[0])};
+
+$("keyPicker").onclick=()=>{waitingKey=true;$("keyPicker").classList.add("waiting");$("keyStatus").textContent="キーを押してください…";$("keyValue").textContent="入力待ち"};
+$("skipKey").onclick=()=>{selectedKey="";keySkipped=true;waitingKey=false;$("keyPicker").classList.remove("waiting");$("keyStatus").textContent="キーなしで保存します";$("keyValue").textContent="未設定"};
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){soundModal.classList.remove("show");closeEditor();$("acctBg").classList.remove("show");$("authBg").classList.remove("show");closePub();$("pubSetBg").classList.remove("show");$("legalBg").classList.remove("show");["notifBg","shareBg","boardBg","setBg","keyBg","admBg","betaBg"].forEach(i=>$(i).classList.remove("show"));recClose();$("contextMenu").classList.remove("show");return}
+  if(soundModal.classList.contains("show")&&waitingKey){
+    const c=comboOf(e);if(!c){showMods(e);return}
+    e.preventDefault();e.stopPropagation();
+    if(c==="!"){toast("使えるのは、1つのキー、または Ctrl / Alt / Shift のいずれか1つ＋1キー（最大2つ）です。");return}
+    selectedKey=c;keySkipped=false;waitingKey=false;$("keyPicker").classList.remove("waiting");$("keyStatus").textContent="設定されたキー";$("keyValue").textContent=formatKey(c);return;
+  }
+  if(document.querySelector(".modalBg.show")||$("contextMenu").classList.contains("show"))return;
+  const c=comboOf(e);if(!c||c==="!")return;const s=sounds.find(x=>x.key===c);if(s){e.preventDefault();if(!e.repeat||PLAY.repeat)playSound(s)}
+},true);
+
+$("saveSoundButton").addEventListener("click", async (e)=>{
+  e.preventDefault();
+  e.stopPropagation();
+
+  const name=$("soundName").value.trim();
+
+  if(!name){
+    toast("サウンド名を入力してください。");
+    $("soundName").focus();
+    return;
+  }
+
+  if(!editingId && !selectedFile){
+    toast("音声ファイルを選択してください。");
+    return;
+  }
+
+  if(!selectedKey&&!keySkipped){
+    toast("再生キーを設定してください。");
+    $("keyStatus").textContent="クリックして、キー（Ctrl / Alt / Shift＋1キーも可）を押してください";
+    $("keyPicker").classList.add("waiting");
+    waitingKey=true;
+    return;
+  }
+
+  if(selectedKey && sounds.some(s=>s.key===selectedKey && s.id!==editingId)){
+    toast("そのキーはすでに使用されています。別のキーを選んでください。");
+    return;
+  }
+
+  try{
+    if(editingId){
+      const s=sounds.find(x=>x.id===editingId);
+      if(!s){
+        toast("編集対象が見つかりません。");
+        return;
+      }
+
+      s.name=name;
+      s.key=selectedKey;
+
+      if(selectedFile){
+        s.blob=selectedFile;s.rev=uid();
+        s.fileName=selectedFile.name;
+      }
+
+      await putSound(s);
+      toast("サウンドを更新しました。");
+    }else{
+      const s={
+        id:uid(),
+        name:name,
+        key:selectedKey,
+        fileName:selectedFile.name,
+        blob:selectedFile,owner:ownerKey(),
+        order:sounds.length
+      };
+
+      await putSound(s);
+      toast("サウンドを追加しました。");
+    }
+
+    sounds=await getAll();
+    render();
+    soundModal.classList.remove("show");
+
+    selectedFile=null;
+    selectedKey=null;
+    editingId=null;
+    waitingKey=false;
+  }catch(err){
+    console.error("Sound save error:",err);
+    toast("保存に失敗しました。もう一度試してください。");
+  }
+});
+
+function stopCurrent(){voices.forEach(v=>v.stop());ovl.forEach(o=>o.stop());if(currentAudio)currentAudio.pause();if(stopCleanup)stopCleanup()}
+function stopPreview(){if(editorSource){const p=editorSource;editorSource=null;p.stop()}}
+function closeEditor(){stopCurrent();stopPreview();editorModal.classList.remove("show")}
+function legacyPlay(s,toggle){
+  if(PLAY.mode==="overlap")return playOverlap(s,toggle);
+  if(toggle&&currentAudio&&currentId===s.id){stopCurrent();return}
+  stopCurrent();stopPreview();pubStop();
+  if(!s.blob){toast("音声データがありません。");return}
+  const id=s.id,url=URL.createObjectURL(s.blob),a=new Audio(url);a.volume=masterVolume;currentAudio=a;currentId=id;
+  const ui=on=>{const card=document.querySelector(`[data-id="${CSS.escape(id)}"]`),b=card&&card.querySelector(".play");if(!b)return;card.classList.toggle("playing",on);b.classList.toggle("active",on);b.textContent=on?"■  再生中":"▶  再生"};
+  function cleanup(){ui(false);URL.revokeObjectURL(url);if(currentAudio===a){currentAudio=null;currentId=null}if(stopCleanup===cleanup)stopCleanup=null}
+  ui(true);stopCleanup=cleanup;a.onended=cleanup;
+  a.play().catch(()=>{if(currentAudio!==a)return;cleanup();toast("音声を再生できませんでした。")});
+}
+$("volume").oninput=async e=>{masterVolume=Number(e.target.value)/100;$("volumeText").textContent=e.target.value+"%";await setSetting("volume",masterVolume)};
+
+const menu=$("contextMenu");
+function openMenu(s,e){
+  contextId=s.id;menu.classList.add("show");let x=e.clientX,y=e.clientY,r=menu.getBoundingClientRect();if(x+r.width>innerWidth)x=innerWidth-r.width-10;if(y+r.height>innerHeight)y=innerHeight-r.height-10;menu.style.left=x+"px";menu.style.top=y+"px";
+}
+document.addEventListener("click",e=>{if(!menu.contains(e.target)&&!e.target.classList.contains("more"))menu.classList.remove("show")});
+$("editSound").onclick=()=>{menu.classList.remove("show");openSoundModal(contextId)};
+$("editAudio").onclick=()=>{menu.classList.remove("show");openEditor(sounds.find(s=>s.id===contextId))};
+$("deleteSound").onclick=async()=>{menu.classList.remove("show");const s=sounds.find(x=>x.id===contextId);if(s&&await askConfirm(`「${s.name}」を削除しますか？\n（クラウドに保存している場合は、クラウドからも削除されます）`,{title:"サウンドの削除",ok:"削除する",danger:true})){await delSound(s.id);sounds=await getAll();render();toast("削除しました。")}};
+async function move(dir){
+  menu.classList.remove("show");let i=sounds.findIndex(s=>s.id===contextId),j=i+dir;if(i<0||j<0||j>=sounds.length)return;
+  [sounds[i],sounds[j]]=[sounds[j],sounds[i]];sounds.forEach((s,k)=>s.order=k);await putMany(sounds);sounds=await getAll();render();
+}
+$("moveUp").onclick=()=>move(-1);$("moveDown").onclick=()=>move(1);
+$("duplicateSound").onclick=async()=>{
+  menu.classList.remove("show");const s=sounds.find(x=>x.id===contextId);if(!s)return;
+  const copy={...s,id:uid(),name:s.name+" のコピー",key:"",order:sounds.length};await putSound(copy);sounds=await getAll();render();toast("複製しました。キーを設定してください。");
+};
+
+/* Audio editor */
+async function openEditor(s){
+  if(!s?.blob)return;
+  editorSound=s;editorModal.classList.add("show");toast("音声を読み込んでいます…");
+  try{
+    const ac=new AudioContext(),buf=await ac.decodeAudioData(await s.blob.arrayBuffer());editorBuffer=buf;await ac.close();
+    $("startTime").value=0;$("endTime").value=buf.duration.toFixed(2);$("fadeIn").value=0;$("fadeOut").value=0;updateFadeLabels();drawWave();
+  }catch(e){console.error(e);editorModal.classList.remove("show");toast("このファイルを編集できませんでした。")}
+}
+$("closeEditor").onclick=closeEditor;
+$("editorModal").onclick=e=>{if(e.target===editorModal)closeEditor()};
+function duration(){return editorBuffer?.duration||0}
+function clampTimes(){
+  let st=Math.max(0,Math.min(Number($("startTime").value)||0,duration()));
+  let en=Math.max(st,Math.min(Number($("endTime").value)||duration(),duration()));
+  $("startTime").value=st.toFixed(2);$("endTime").value=en.toFixed(2);
+  const max=Math.max(0,en-st);$("fadeIn").max=Math.min(10,max).toFixed(2);$("fadeOut").max=Math.min(10,max).toFixed(2);
+  if(Number($("fadeIn").value)>max)$("fadeIn").value=max;
+  if(Number($("fadeOut").value)>max)$("fadeOut").value=max;
+  updateFadeLabels();
+}
+$("startTime").oninput=$("endTime").oninput=clampTimes;$("fadeIn").oninput=updateFadeLabels;$("fadeOut").oninput=updateFadeLabels;
+function updateFadeLabels(){$("fadeInText").textContent=Number($("fadeIn").value).toFixed(2)+" 秒";$("fadeOutText").textContent=Number($("fadeOut").value).toFixed(2)+" 秒";drawWave()}
+let peaks=null,dragH=null;
+function getPeaks(w){
+  if(peaks&&peaks.buf===editorBuffer&&peaks.w===w)return peaks;
+  const chs=Array.from({length:editorBuffer.numberOfChannels},(_,c)=>editorBuffer.getChannelData(c)),n=chs[0].length,step=Math.max(1,Math.ceil(n/w)),mn=new Float32Array(w),mx=new Float32Array(w);
+  for(let x=0;x<w;x++){let lo=1,hi=-1;const a=x*step,b=Math.min(a+step,n);for(const d of chs)for(let i=a;i<b;i++){const v=d[i];if(v<lo)lo=v;if(v>hi)hi=v}if(lo>hi)lo=hi=0;mn[x]=lo;mx[x]=hi}
+  return peaks={buf:editorBuffer,w,mn,mx};
+}
+function envGain(t,len,fi,fo){let g=1;if(fi>0&&t<fi)g*=t/fi;if(fo>0&&t>len-fo)g*=Math.max(0,(len-t)/fo);return g}
+function drawWave(){
+  if(!editorBuffer)return;
+  const dpr=devicePixelRatio||1,w=Math.floor(canvas.clientWidth)||700,h=canvas.clientHeight||180,D=duration()||1;
+  canvas.width=w*dpr;canvas.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+  const lt=document.documentElement.dataset.theme==="light";ctx.fillStyle=lt?"#ffffff":"#0a0c10";ctx.fillRect(0,0,w,h);ctx.strokeStyle=lt?"#d5dae2":"#29313b";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,h/2);ctx.lineTo(w,h/2);ctx.stroke();
+  const st=Number($("startTime").value)||0,en=Number($("endTime").value)||D,len=Math.max(0,en-st),fi=Number($("fadeIn").value)||0,fo=Number($("fadeOut").value)||0;
+  const sx=st/D*w,ex=en/D*w,pk=getPeaks(w),amp=h*.42;
+  ctx.strokeStyle=lt?"#4a5568":"#aeb7c3";ctx.beginPath();
+  for(let x=0;x<w;x++){const g=(len>0&&x>=sx&&x<=ex)?envGain(x/w*D-st,len,fi,fo):1;ctx.moveTo(x+.5,h/2+pk.mn[x]*amp*g);ctx.lineTo(x+.5,h/2+pk.mx[x]*amp*g)}
+  ctx.stroke();
+  ctx.fillStyle=lt?"rgba(120,130,150,.35)":"rgba(0,0,0,.5)";ctx.fillRect(0,0,sx,h);ctx.fillRect(ex,0,w-ex,h);
+  if(len>0&&(fi>0||fo>0)){
+    ctx.fillStyle="rgba(255,209,102,.12)";
+    if(fi>0)ctx.fillRect(sx,0,Math.min(fi,len)/D*w,h);
+    if(fo>0){const fw=Math.min(fo,len)/D*w;ctx.fillRect(ex-fw,0,fw,h)}
+    ctx.strokeStyle="#ffd166";ctx.lineWidth=1.5;
+    for(const sg of[-1,1]){ctx.beginPath();for(let x=Math.floor(sx);x<=Math.ceil(ex)+1;x+=2){const xx=Math.min(x,ex),y=h/2+sg*envGain(xx/w*D-st,len,fi,fo)*amp;x===Math.floor(sx)?ctx.moveTo(xx,y):ctx.lineTo(xx,y)}ctx.stroke()}
+  }
+  for(const[x0,c]of[[sx,"#7ee2a0"],[ex,"#ff6872"]]){
+    const x=Math.max(6,Math.min(w-6,x0));
+    ctx.lineWidth=5;ctx.strokeStyle="rgba(0,0,0,.75)";ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();
+    ctx.lineWidth=2;ctx.strokeStyle=c;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();
+    ctx.fillStyle=c;ctx.strokeStyle="#000";ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x-6,h/2-15,12,30,5);ctx.fill();ctx.stroke();
+  }
+  ctx.lineWidth=1;
+}
+function timeAt(e){const r=canvas.getBoundingClientRect();return Math.max(0,Math.min(duration(),(e.clientX-r.left)/r.width*duration()))}
+function nearHandle(e){
+  const r=canvas.getBoundingClientRect(),D=duration()||1,px=v=>r.left+v/D*r.width,ps=px(Number($("startTime").value)),pe=px(Number($("endTime").value)),ds=Math.abs(e.clientX-ps),de=Math.abs(e.clientX-pe);
+  if(Math.min(ds,de)>12)return null;
+  if(ds===de)return e.clientX>=ps?"end":"start";
+  return ds<de?"start":"end";
+}
+function moveHandle(hd,t){
+  const g=.01,D=duration();
+  if(hd==="start"){const en=Number($("endTime").value);$("startTime").value=Math.max(0,Math.min(t,en-g)).toFixed(2)}
+  else{const st=Number($("startTime").value);$("endTime").value=Math.min(D,Math.max(t,st+g)).toFixed(2)}
+  clampTimes();
+}
+canvas.style.touchAction="none";
+canvas.addEventListener("pointerdown",e=>{
+  if(!editorBuffer)return;e.preventDefault();canvas.setPointerCapture(e.pointerId);
+  const t=timeAt(e);let hd=nearHandle(e);
+  if(!hd){hd=e.shiftKey?"end":"start";if(hd==="start"&&t>=Number($("endTime").value))$("endTime").value=Math.min(duration(),t+.01).toFixed(2)}
+  dragH=hd;moveHandle(hd,t);
+});
+canvas.addEventListener("pointermove",e=>{if(!editorBuffer)return;if(dragH){moveHandle(dragH,timeAt(e));return}canvas.style.cursor=nearHandle(e)?"ew-resize":"crosshair"});
+canvas.addEventListener("pointerup",()=>{dragH=null});canvas.addEventListener("pointercancel",()=>{dragH=null});
+window.addEventListener("resize",()=>{if(editorModal.classList.contains("show"))drawWave()});
+
+function makeEditedBuffer(){
+  if(!editorBuffer)throw Error("no buffer");
+  const st=Math.max(0,Math.min(Number($("startTime").value),editorBuffer.duration)),en=Math.max(st,Math.min(Number($("endTime").value),editorBuffer.duration)),len=Math.max(1,Math.floor((en-st)*editorBuffer.sampleRate)),ch=editorBuffer.numberOfChannels,out=new AudioBuffer({length:len,numberOfChannels:ch,sampleRate:editorBuffer.sampleRate});
+  const fi=Math.min(Number($("fadeIn").value),en-st),fo=Math.min(Number($("fadeOut").value),en-st);
+  for(let c=0;c<ch;c++){const src=editorBuffer.getChannelData(c),dst=out.getChannelData(c);for(let i=0;i<len;i++){const t=i/editorBuffer.sampleRate,abs=st+t;let gain=1;if(fi>0&&t<fi)gain*=t/fi;if(fo>0&&t>(en-st-fo))gain*=Math.max(0,(en-st-t)/fo);const pos=Math.min(src.length-1,Math.max(0,Math.floor(abs*editorBuffer.sampleRate)));dst[i]=src[pos]*gain}}
+  return out;
+}
+function wavBlob(buf){
+  const ch=buf.numberOfChannels,len=buf.length,rate=buf.sampleRate,bytes=2,dataSize=len*ch*bytes,ab=new ArrayBuffer(44+dataSize),v=new DataView(ab);
+  const ws=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))};ws(0,"RIFF");v.setUint32(4,36+dataSize,true);ws(8,"WAVE");ws(12,"fmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,ch,true);v.setUint32(24,rate,true);v.setUint32(28,rate*ch*bytes,true);v.setUint16(32,ch*bytes,true);v.setUint16(34,16,true);ws(36,"data");v.setUint32(40,dataSize,true);
+  let off=44;for(let i=0;i<len;i++)for(let c=0;c<ch;c++){let x=Math.max(-1,Math.min(1,buf.getChannelData(c)[i]));v.setInt16(off,x<0?x*0x8000:x*0x7fff,true);off+=2}return new Blob([ab],{type:"audio/wav"})
+}
+async function toMp3Rate(buf){
+  if(buf.sampleRate<=48000&&buf.numberOfChannels<=2)return buf;
+  const ch=Math.min(2,buf.numberOfChannels),rate=buf.sampleRate>48000?44100:buf.sampleRate;
+  const oc=new OfflineAudioContext(ch,Math.ceil(buf.duration*rate),rate),s=oc.createBufferSource();s.buffer=buf;s.connect(oc.destination);s.start();return oc.startRendering();
+}
+async function mp3Blob(buf){
+  if(!window.lamejs){await loadLame()}
+  buf=await toMp3Rate(buf);
+  const enc=new lamejs.Mp3Encoder(buf.numberOfChannels,buf.sampleRate,192),ch=buf.numberOfChannels,pcm=[];
+  for(let c=0;c<ch;c++){const f=buf.getChannelData(c),a=new Int16Array(f.length);for(let i=0;i<f.length;i++)a[i]=Math.max(-32768,Math.min(32767,f[i]*32767));pcm[c]=a}
+  const out=[],size=1152;
+  for(let i=0;i<buf.length;i+=size){const left=pcm[0].subarray(i,Math.min(i+size,buf.length));let mp;if(ch===1)mp=enc.encodeBuffer(left);else{const right=pcm[1].subarray(i,Math.min(i+size,buf.length));mp=enc.encodeBuffer(left,right)}if(mp.length)out.push(mp)}
+  const end=enc.flush();if(end.length)out.push(end);return new Blob(out,{type:"audio/mpeg"})
+}
+function loadLame(){
+  return new Promise((res,rej)=>{
+    if(window.lamejs)return res();
+    const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js";s.onload=res;s.onerror=()=>rej(Error("MP3 encoder load failed"));document.head.appendChild(s)
+  })
+}
+function downloadBlob(blob,name){const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+async function getEdited(){clampTimes();return makeEditedBuffer()}
+$("previewOriginal").onclick=()=>{if(editorSound)playSound(editorSound)};
+$("previewEdited").onclick=async()=>{try{const b=await getEdited();stopCurrent();stopPreview();const u=URL.createObjectURL(wavBlob(b)),a=new Audio(u);a.volume=masterVolume;const stop=()=>{a.pause();URL.revokeObjectURL(u);if(editorSource&&editorSource.a===a)editorSource=null};editorSource={a,stop};a.onended=stop;await a.play()}catch(e){toast("プレビューを作れませんでした。")}};
+$("downloadWav").onclick=async()=>{try{const b=await getEdited();downloadBlob(wavBlob(b),safeName(editorSound.name)+"_edited.wav");toast("WAVを書き出しました。")}catch(e){console.error(e);toast("WAVの書き出しに失敗しました。")}};
+$("downloadMp3").onclick=async()=>{try{toast("MP3を作成しています…");const b=await getEdited();const blob=await mp3Blob(b);downloadBlob(blob,safeName(editorSound.name)+"_edited.mp3");toast("MP3を書き出しました。")}catch(e){console.error(e);toast(String(e&&e.message).includes("load failed")?"MP3エンコーダーを読み込めません。オンライン接続を確認してください。":"MP3の書き出しに失敗しました。")}};
+$("saveEdited").onclick=async()=>{
+  try{
+    if(!await askConfirm("元の音声を、編集後の内容で上書きします。\nこの変更は元に戻せません。",{title:"上書き保存",ok:"上書きする",danger:true}))return;
+    const b=await getEdited(),blob=wavBlob(b);stopCurrent();stopPreview();
+    const s={...editorSound,blob,rev:uid(),fileName:safeName(editorSound.name)+".wav"};
+    await putSound(s);sounds=await getAll();render();closeEditor();toast("元の音声を上書き保存しました。");
+  }catch(e){console.error(e);toast("保存に失敗しました。")}
+};
+function safeName(s){return (s||"sound").replace(/[\\/:*?"<>|]/g,"_")}
+
+/* ===== Accounts (browser-local; no server) ===== */
+const enc=new TextEncoder(),EMAIL=/^[^\s@]+@[^\s@]+\.[^\s@]+$/,authBox=$("authBox"),acctBox=$("acctBox");
+const b64=u=>btoa(String.fromCharCode(...new Uint8Array(u))),unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nrm=e=>e.trim().toLowerCase(),pwStrong=p=>p.length>=8&&/[A-Za-z]/.test(p)&&/\d/.test(p),err=(box,m)=>{box.querySelector(".err").textContent=withCode(m)};
+const PWMSG="パスワードは8文字以上で、英字と数字を含めてください。";
+const rawSounds=()=>new Promise(res=>{const r=tx(STORE,"readonly").getAll();r.onsuccess=()=>res(r.result)});
+async function claimLegacy(id){const all=await rawSounds(),t=db.transaction(STORE,"readwrite");all.filter(s=>!s.owner||s.owner==="guest").forEach(s=>{s.owner=id;t.objectStore(STORE).put(s)});return new Promise(r=>t.oncomplete=r)}
+async function deleteLocal(id){const all=await rawSounds(),t=db.transaction(STORE,"readwrite");all.filter(s=>s.owner===id).forEach(s=>t.objectStore(STORE).delete(s.id));return new Promise(r=>t.oncomplete=r)}
+/* Supabase */
+const SB_URL="https://kjkideavpoxozunbuwyu.supabase.co",SB_KEY="sb_publishable_l3Hj_-a0T5NDcb--GFcQ-A_9VUFR-i4",SB_TOKEN="sb-kjkideavpoxozunbuwyu-auth-token";
+try{remember=!!localStorage.getItem(SB_TOKEN)||localStorage.getItem("sb_oauth_rem")==="1"}catch(_){}
+const sbStore={
+  getItem:k=>localStorage.getItem(k)??sessionStorage.getItem(k),
+  setItem:(k,v)=>{const [on,off]=remember?[localStorage,sessionStorage]:[sessionStorage,localStorage];off.removeItem(k);on.setItem(k,v)},
+  removeItem:k=>{localStorage.removeItem(k);sessionStorage.removeItem(k)}
+};
+const sb=window.supabase?supabase.createClient(SB_URL,SB_KEY,{auth:{storage:sbStore,persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}):null;
+const toUser=u=>{if(!u)return null;const m=u.user_metadata||{};return{meta:m,prov:(u.app_metadata&&u.app_metadata.provider)||"email",id:u.id,email:u.email,name:m.name||m.full_name||String(u.email).split("@")[0],bio:m.bio||"",created:Date.parse(u.created_at)}};
+const msgOf=e=>{const m=(e.message||"").toLowerCase();return m.includes("captcha")?"ボット対策の確認に失敗しました。もう一度お試しください。":m.includes("invalid login")?"メールアドレスまたはパスワードが正しくありません。":(m.includes("rate limit")||e.status===429)?"送信回数の上限です。しばらく待ってからお試しください。":(m.includes("expired")||m.includes("invalid"))?"認証コードが正しくないか、期限切れです。":m.includes("same")?"現在と同じパスワードは使えません。":m.includes("password")?PWMSG:"エラーが発生しました: "+e.message};
+async function enterUser(u){currentUser=toUser(u);if(moveFlag){await claimLegacy(currentUser.id);moveFlag=false}sounds=await getAll();render();updateHeader();$("authBg").classList.remove("show");$("acctBg").classList.remove("show");cloudSync()}
+async function goGuest(){isAdmin=false;setBadge(0);currentUser=null;sounds=await getAll();render();updateHeader();$("acctBg").classList.remove("show")}
+async function restore(){if(!sb)return null;try{const{data}=await sb.auth.getSession();return toUser(data.session&&data.session.user)}catch(_){return null}}
+if(sb)sb.auth.onAuthStateChange(ev=>{if(ev==="SIGNED_OUT"&&currentUser)setTimeout(goGuest,0)});
+function updateHeader(){$("accountBtn").textContent=currentUser?"👤 "+currentUser.name:"👤 ログイン"}
+$("accountBtn").onclick=()=>currentUser?showAcct("profile"):showAuth("login");
+$("authBg").onclick=e=>{if(e.target===$("authBg"))$("authBg").classList.remove("show")};
+$("acctBg").onclick=e=>{if(e.target===$("acctBg"))$("acctBg").classList.remove("show")};
+
+const F=(id,l,t="text",x="")=>`<div class="field"><label class="label">${l}</label><input class="text" id="${id}" type="${t}" ${x}></div>`;
+const OK=(act,label,cls="confirm")=>`<div class="err"></div><div class="modalButtons"><button class="${cls}" data-act="${act}">${label}</button></div>`;
+const AV={
+  login:()=>`<div class="modalHead"><h2>ログイン</h2></div>${F("aEmail","メールアドレス","email",'autocomplete="username"')}${F("aPw","パスワード","password",'autocomplete="current-password"')}<label class="chk"><input type="checkbox" id="aRem" checked> ログイン状態を維持する（30日）</label>${OK("login","ログイン")}<div class="links"><a data-go="register">新規登録</a><a data-go="forgot">パスワードを忘れた方</a></div><div class="note" style="text-align:center;margin:16px 0 8px">または</div><div class="prow" style="justify-content:center"><button class="sbtn" data-act="oauthGoogle">Googleで続行</button><button class="sbtn" data-act="oauthDiscord">Discordで続行</button></div><div class="note" style="text-align:center;font-size:11px;margin-top:8px">続行すると、利用規約とプライバシーポリシーに同意したものとみなします。初めての方も、ここから登録できます。</div><div class="links"><a data-act="closeAuth">アカウントなしで使う（ゲスト）</a></div>`,
+  register:()=>`<div class="modalHead"><h2>新規アカウント登録</h2></div>${F("aName","表示名","text",'maxlength="30"')}${F("aEmail","メールアドレス","email",'autocomplete="username"')}${F("aPw","パスワード（8文字以上・英数字）","password",'autocomplete="new-password"')}${F("aPw2","パスワード（確認）","password",'autocomplete="new-password"')}<label class="chk"><input type="checkbox" id="aMove" checked> ゲストで作ったサウンドをこのアカウントに引き継ぐ</label><label class="chk" style="align-items:flex-start"><input type="checkbox" id="aAgree"> <span><a data-legal="terms">利用規約</a>と<a data-legal="privacy">プライバシーポリシー</a>に同意する</span></label>${OK("register","登録する")}<div class="links"><a data-go="login">ログインへ戻る</a></div>`,
+  verify:()=>`<div class="modalHead"><h2>メールアドレスの認証</h2></div><div class="note">${esc(pending)} 宛に認証コードを送信しました（届かない場合は迷惑メールフォルダもご確認ください）。</div>${F("aCode","認証コード","text",'inputmode="numeric" maxlength="8" autocomplete="one-time-code"')}${OK("verify","認証する")}<div class="links"><a data-act="resend">コードを再送</a><a data-go="login">ログインへ戻る</a></div>`,
+  forgot:()=>`<div class="modalHead"><h2>パスワードのリセット</h2></div><div class="note">登録したメールアドレスに認証コードを送信します。</div>${F("aEmail","メールアドレス","email")}${OK("forgot","コードを送信")}<div class="links"><a data-go="login">ログインへ戻る</a></div>`,
+  reset:()=>`<div class="modalHead"><h2>新しいパスワードの設定</h2></div><div class="note">${esc(pending)} が登録されている場合、認証コードを送信しました。</div>${F("aCode","認証コード","text",'inputmode="numeric" maxlength="8"')}${F("aPw","新しいパスワード","password",'autocomplete="new-password"')}${F("aPw2","新しいパスワード（確認）","password",'autocomplete="new-password"')}${OK("reset","パスワードを変更")}<div class="links"><a data-go="forgot">コードを再送</a><a data-go="login">ログインへ戻る</a></div>`
+};
+function showAuth(v){authBox.innerHTML=AV[v]();authBox.querySelector(".modalHead").insertAdjacentHTML("beforeend",'<button class="close" data-act="closeAuth">×</button>');$("authBg").classList.add("show");const i=authBox.querySelector("input");if(i)i.focus()}
+function showAcct(tab){
+  const u=currentUser,T=(k,l)=>`<a data-go="tab:${k}" class="${tab===k?"on":""}">${l}</a>`;
+  const body={
+    profile:()=>`<div class="prof"><div class="avatar">${esc([...u.name][0]||"?")}</div><div><div style="font-weight:700">${esc(u.name)}</div><div class="sub">${esc(u.email)} <span class="ok">✓ 認証済み</span></div><div class="sub">登録日: ${new Date(u.created).toLocaleDateString("ja-JP")}</div></div></div><div class="field"><label class="label">クラウド使用量</label><div class="bar"><i id="usageBar"></i></div><div class="sub" id="usageText">読み込み中…</div></div>${F("pName","表示名","text",'maxlength="30"')}${F("pBio","自己紹介","text",'maxlength="120"')}${OK("saveProfile","プロフィールを保存")}<div class="modalButtons"><button class="cancel" data-act="share">ボードを共有</button><button class="cancel" data-act="syncNow">今すぐ同期</button><button class="cancel" data-act="logout">ログアウト</button></div>`,
+    pw:()=>u.prov!=="email"?`<div class="note">このアカウントはGoogleなどでログインしているため、パスワードはありません。</div>`:`${F("cPw","現在のパスワード","password",'autocomplete="current-password"')}${F("nPw","新しいパスワード（8文字以上・英数字）","password",'autocomplete="new-password"')}${F("nPw2","新しいパスワード（確認）","password",'autocomplete="new-password"')}${OK("changePw","パスワードを変更")}`,
+    del:()=>`<div class="note">アカウントと、登録した全サウンドが削除されます。この操作は元に戻せません。</div>${u.prov!=="email"?'<div class="note">Googleなどでログインしているため、パスワードの入力は不要です。</div>':F("dPw","パスワードを入力して確認","password",'autocomplete="current-password"')}${OK("delAcct","アカウントを削除","confirm dangerBtn")}`
+  }[tab]();
+  acctBox.innerHTML=`<div class="modalHead"><h2>アカウント</h2><button class="close" data-act="closeAcct">×</button></div><div class="tabs">${T("profile","プロフィール")}${T("pw","パスワード")}${T("del","削除")}</div>${body}`;
+  if(tab==="profile"){$("pName").value=u.name;$("pBio").value=u.bio||"";refreshUsage()}
+  $("acctBg").classList.add("show");
+}
+const ACT={
+  closeAuth(){$("authBg").classList.remove("show")},
+  async oauthGoogle(){return oauth("google")},async oauthDiscord(){return oauth("discord")},
+  closeAcct(){$("acctBg").classList.remove("show")},
+  async share(){$("acctBg").classList.remove("show");openShare()},
+  async syncNow(){if(await cloudSync())toast("同期しました。");refreshUsage()},
+  async login(){
+    const email=nrm($("aEmail").value);remember=$("aRem").checked;
+    const{data,error}=await sb.auth.signInWithPassword({email,password:$("aPw").value,options:cap()});
+    if(error){if(/not confirmed/i.test(error.message)){pending=email;await sb.auth.resend({type:"signup",email,options:cap()});return showAuth("verify")}return err(authBox,msgOf(error))}
+    await enterUser(data.user);
+  },
+  async register(){
+    const name=$("aName").value.trim(),email=nrm($("aEmail").value),pw=$("aPw").value;
+    if(!name)return err(authBox,"表示名を入力してください。");
+    if(!$("aAgree").checked)return err(authBox,"利用規約とプライバシーポリシーへの同意が必要です。");
+    if(!EMAIL.test(email))return err(authBox,"メールアドレスの形式が正しくありません。");
+    if(!pwStrong(pw))return err(authBox,PWMSG);
+    if(pw!==$("aPw2").value)return err(authBox,"確認用パスワードが一致しません。");
+    const{data,error}=await sb.auth.signUp({email,password:pw,options:{captchaToken:cfTok||undefined,data:{name,bio:"",terms_version:TERMS_VER}}});
+    if(error)return err(authBox,msgOf(error));
+    if(data.user&&data.user.identities&&data.user.identities.length===0)return err(authBox,"このメールアドレスは既に登録されています。");
+    moveFlag=$("aMove").checked;pending=email;showAuth("verify");
+  },
+  async resend(){const{error}=await sb.auth.resend({type:"signup",email:pending,options:cap()});toast(error?msgOf(error):"認証コードを再送しました。")},
+  async verify(){
+    remember=false;
+    const{data,error}=await sb.auth.verifyOtp({email:pending,token:$("aCode").value.trim(),type:"signup"});
+    if(error)return err(authBox,msgOf(error));
+    toast("メール認証が完了しました。");await enterUser(data.user);
+  },
+  async forgot(){
+    const email=nrm($("aEmail").value);if(!EMAIL.test(email))return err(authBox,"メールアドレスの形式が正しくありません。");
+    const{error}=await sb.auth.resetPasswordForEmail(email,cap());if(error)return err(authBox,msgOf(error));
+    pending=email;showAuth("reset");
+  },
+  async reset(){
+    const pw=$("aPw").value;if(!pwStrong(pw))return err(authBox,PWMSG);
+    if(pw!==$("aPw2").value)return err(authBox,"確認用パスワードが一致しません。");
+    remember=false;
+    const v=await sb.auth.verifyOtp({email:pending,token:$("aCode").value.trim(),type:"recovery"});if(v.error)return err(authBox,msgOf(v.error));
+    const u=await sb.auth.updateUser({password:pw});if(u.error){await sb.auth.signOut();return err(authBox,msgOf(u.error))}
+    await sb.auth.signOut({scope:"global"});toast("パスワードを変更しました。ログインしてください。");showAuth("login");
+  },
+  async saveProfile(){
+    const name=$("pName").value.trim();if(!name)return err(acctBox,"表示名を入力してください。");
+    const{data,error}=await sb.auth.updateUser({data:{...currentUser.meta,name,bio:$("pBio").value.trim()}});if(error)return err(acctBox,msgOf(error));
+    currentUser=toUser(data.user);updateHeader();toast("プロフィールを保存しました。");showAcct("profile");
+  },
+  async changePw(){
+    const u=currentUser,pw=$("nPw").value;
+    const a=await sb.auth.signInWithPassword({email:u.email,password:$("cPw").value,options:cap()});if(a.error)return err(acctBox,"現在のパスワードが正しくありません。");
+    if(!pwStrong(pw))return err(acctBox,PWMSG);
+    if(pw!==$("nPw2").value)return err(acctBox,"確認用パスワードが一致しません。");
+    const r=await sb.auth.updateUser({password:pw});if(r.error)return err(acctBox,msgOf(r.error));
+    await sb.auth.signOut({scope:"others"});toast("パスワードを変更しました。他の端末はログアウトされます。");showAcct("profile");
+  },
+  async delAcct(){
+    const u=currentUser;
+    if(u.prov==="email"){const a=await sb.auth.signInWithPassword({email:u.email,password:$("dPw").value,options:cap()});if(a.error)return err(acctBox,"パスワードが正しくありません。")}
+    if(!await askConfirm("アカウントと、クラウド・この端末の全サウンドを完全に削除します。\nこの操作は元に戻せません。",{title:"アカウントの削除",ok:"完全に削除する",danger:true}))return;
+    stopCurrent();stopPreview();
+    try{const{data:fl}=await sb.storage.from("sounds").list(u.id,{limit:1000});if(fl&&fl.length)await sb.storage.from("sounds").remove(fl.map(f=>u.id+"/"+f.name))}catch(_){}
+    try{const{data:fp}=await sb.storage.from("public-sounds").list(u.id,{limit:1000});if(fp&&fp.length)await sb.storage.from("public-sounds").remove(fp.map(f=>u.id+"/"+f.name))}catch(_){}
+    const{error}=await sb.rpc("delete_my_account");if(error)return err(acctBox,"削除に失敗しました（delete_my_account のSQL設定を確認してください）。");
+    await deleteLocal(u.id);currentUser=null;await sb.auth.signOut({scope:"local"});await goGuest();toast("アカウントを削除しました。");
+  },
+  async logout(){
+    stopCurrent();stopPreview();currentUser=null;await sb.auth.signOut();await goGuest();toast("ログアウトしました。ゲストとして使用中です。");
+  }
+};
+for(const box of[authBox,acctBox]){
+  box.addEventListener("click",async e=>{
+    const g=e.target.closest("[data-go]"),a=e.target.closest("[data-act]");
+    if(g){const v=g.dataset.go;return v.startsWith("tab:")?showAcct(v.slice(4)):showAuth(v)}
+    if(a){if(!sb&&!/^close/.test(a.dataset.act))return err(box,"サーバーに接続できません。ネット接続を確認してください。");a.disabled=true;try{await ACT[a.dataset.act]()}catch(x){console.error(x);err(box,x.message==="nocrypto"?"この環境ではパスワード保護機能が使えません。https または localhost で開いてください。":"エラーが発生しました。もう一度お試しください。")}finally{a.disabled=false;capReset()}}
+  });
+  box.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.tagName==="INPUT"&&e.target.type!=="checkbox"){const b=box.querySelector("button.confirm");b&&b.click()}});
+}
+
+/* ===== Cloud sync (Supabase Storage + table) ===== */
+const MAX_FILE=10*1024*1024,MAX_TOTAL=100*1024*1024,BUCKET="sounds",_putSound=putSound,_delSound=delSound,_putMany=putMany;
+let syncing=false,lastSync=0;
+const keyOf=s=>s.id+":"+(s.rev||"");
+async function purgeSynced(id){const all=await rawSounds(),t=db.transaction(STORE,"readwrite");all.filter(s=>s.owner===id&&s.syncedKey===keyOf(s)).forEach(s=>t.objectStore(STORE).delete(s.id));return new Promise(r=>t.oncomplete=r)}
+async function cloudPush(s,quiet){
+  if(!sb||!currentUser||s.owner!==currentUser.id||!s.blob)return;
+  try{
+    const me=currentUser.id,path=me+"/"+s.id,need=s.syncedKey!==keyOf(s);
+    if(need){
+      if(s.blob.size>MAX_FILE){if(!quiet)toast("10MBを超えるファイルはクラウドに保存できません（この端末にだけ保存されます）。");return}
+      const used=sounds.filter(x=>x.id!==s.id&&x.syncedKey).reduce((a,x)=>a+(x.blob?x.blob.size:0),0);
+      if(used+s.blob.size>MAX_TOTAL){if(!quiet)toast("クラウドの容量（100MB）を超えるため、この端末にだけ保存されます。");return}
+      const u=await sb.storage.from(BUCKET).upload(path,s.blob,{upsert:true,contentType:s.blob.type||"audio/wav"});if(u.error)throw u.error;
+    }
+    const r=await sb.from("sounds").upsert({user_id:me,id:s.id,name:s.name,hotkey:s.key||"",file_name:s.fileName||"",sort_order:s.order||0,rev:s.rev||"",size:s.blob.size,mime:s.blob.type||""});
+    if(r.error)throw r.error;
+    if(need){s.syncedKey=keyOf(s);await _putSound(s)}
+  }catch(e){console.error(e);if(!quiet)toast("クラウドへの保存に失敗しました。")}
+}
+async function pullRow(r){
+  const{data,error}=await sb.storage.from(BUCKET).download(currentUser.id+"/"+r.id);if(error)throw error;
+  await _putSound({id:r.id,name:r.name,key:r.hotkey,fileName:r.file_name,order:r.sort_order,blob:data,owner:currentUser.id,rev:r.rev,syncedKey:r.id+":"+r.rev});
+}
+async function cloudSync(){
+  if(!sb||!currentUser||syncing)return;syncing=true;const me=currentUser.id;loadNotifs();checkAdmin();
+  try{
+    const{data:rows,error}=await sb.from("sounds").select("*");if(error)throw error;
+    const local=(await rawSounds()).filter(x=>x.owner===me),lm=new Map(local.map(x=>[x.id,x])),rm=new Map(rows.map(r=>[r.id,r]));
+    for(const l of local){
+      const r=rm.get(l.id);
+      if(!r){if(l.syncedKey)await _delSound(l.id);else await cloudPush(l,true)}
+      else if(l.syncedKey!==keyOf(l))await cloudPush(l,true);
+      else if(r.rev!==(l.rev||""))await pullRow(r);
+      else if(l.name!==r.name||(l.key||"")!==r.hotkey||(l.order||0)!==r.sort_order){Object.assign(l,{name:r.name,key:r.hotkey,order:r.sort_order});await _putSound(l)}
+    }
+    for(const r of rows)if(!lm.has(r.id))await pullRow(r);
+    if(currentUser&&currentUser.id===me){sounds=await getAll();render()}
+    return true;
+  }catch(e){console.error(e);toast("クラウドとの同期に失敗しました。");return false}
+  finally{syncing=false;lastSync=Date.now()}
+}
+putSound=async s=>{await _putSound(s);cloudPush(s)};
+putMany=async list=>{await _putMany(list);list.forEach(s=>cloudPush(s,true))};
+delSound=async id=>{await _delSound(id);if(sb&&currentUser){try{await sb.storage.from(BUCKET).remove([currentUser.id+"/"+id]);await sb.from("sounds").delete().eq("id",id)}catch(e){console.error(e)}}};
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&currentUser&&Date.now()-lastSync>30000)cloudSync()});
+
+async function refreshUsage(){
+  const t=$("usageText");if(!t||!sb||!currentUser)return;
+  try{
+    const{data,error}=await sb.from("sounds").select("size");if(error)throw error;
+    const used=data.reduce((a,r)=>a+Number(r.size||0),0),pct=Math.min(100,used/MAX_TOTAL*100),mb=x=>(x/1048576).toFixed(1);
+    const pend=(await rawSounds()).filter(x=>x.owner===currentUser.id&&x.syncedKey!==keyOf(x)).length;
+    $("usageBar").style.width=pct+"%";$("usageBar").className=pct>=100?"full":pct>=80?"warn":"";
+    t.textContent=`${mb(used)}MB / ${mb(MAX_TOTAL)}MB（${data.length}件・1ファイル最大${mb(MAX_FILE)}MB）`+(pend?` ／ 未アップロード ${pend}件`:"")+(lastSync?` ／ 最終同期 ${new Date(lastSync).toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"})}`:"");
+  }catch(e){console.error(e);t.textContent="使用量を取得できませんでした。"}
+}
+/* ===== Public sounds ===== */
+const PUB="public-sounds";let pubSt={q:"",tag:"",sort:"new",mine:false,n:20},pubPlay=null,pubT=null,pubTarget=null;
+const pubUrl=r=>sb.storage.from(PUB).getPublicUrl(r.owner_id+"/"+r.id).data.publicUrl;
+function closePub(){pubStop();$("pubBg").classList.remove("show")}
+function openPub(){pubSt={q:"",tag:"",sort:"new",mine:false,n:20};drawPub();$("pubBg").classList.add("show");loadPub()}
+function drawPub(){
+  const on=(c)=>c?"on":"";
+  $("pubBox").innerHTML=`<div class="modalHead"><h2>🌐 公開サウンド</h2><button class="close" data-p="closePub">×</button></div><div class="field"><input class="text" id="pq" placeholder="タイトル・説明・作者名で検索"></div><div class="tabs"><a data-p="sort:new" class="${on(!pubSt.mine&&pubSt.sort==="new")}">新着</a><a data-p="sort:week" class="${on(!pubSt.mine&&pubSt.sort==="week")}">週間</a><a data-p="sort:pop" class="${on(!pubSt.mine&&pubSt.sort==="pop")}">累計</a>${currentUser?`<a data-p="mine" class="${on(pubSt.mine)}">自分の公開</a>`:""}</div><div class="sub" id="ptag"></div><div id="pubList" style="max-height:48vh;overflow:auto;margin-top:8px"></div><div class="modalButtons" id="pmore"></div><div class="sub" style="margin-top:10px">公開サウンドの権利は各作者にあります。利用前に作者の許諾条件をご確認ください。権利侵害の疑いは「報告」からお知らせください。</div>`;
+  $("pq").value=pubSt.q;$("pq").oninput=()=>{clearTimeout(pubT);pubT=setTimeout(()=>{pubSt.q=$("pq").value;pubSt.n=20;loadPub()},300)};
+}
+function pubCard(r,rank=0){
+  const d=document.createElement("div"),mk=(c,t,st)=>{const x=document.createElement("div");if(c)x.className=c;x.textContent=t;if(st)x.style.cssText=st;return x};
+  d.className="pcard";
+  const tg=document.createElement("div");(r.tags||[]).forEach(t=>{const s=document.createElement("span");s.className="tag";s.textContent="#"+t;s.dataset.tag=t;tg.appendChild(s)});
+  const row=document.createElement("div");row.className="prow";
+  const btn=(l,fn)=>{const b=document.createElement("button");b.className="sbtn";b.textContent=l;b.onclick=()=>fn(b);row.appendChild(b)};
+  btn("▶ 試聴",b=>pubPreview(r,b));btn("⬇ ダウンロード",()=>pubDownload(r));btn("＋ 自分のボードへ",()=>pubAdd(r));
+  if(currentUser&&r.owner_id===currentUser.id)btn("🗑 公開を削除",()=>pubDelete(r));else btn("⚑ 報告",()=>pubReport(r));
+  d.append(mk("","\u200b","display:none"),mk("",(rank?rank+"位　":"")+r.title,"font-weight:700"),mk("sub",`作者: ${r.author_name||"名無し"}　DL ${r.download_count}　${(r.size/1048576).toFixed(2)}MB`),mk("sub","ライセンス: "+(LIC[r.license]||LIC.personal)),mk("note",r.description||"","margin:6px 0 0"),tg,row);
+  return d;
+}
+async function loadPub(){
+  const L=$("pubList");if(!L)return;pubStop();L.textContent="読み込み中…";
+  if(!sb){L.textContent="サーバーに接続できません。";return}
+  let q=sb.from("public_sounds").select("*");
+  if(pubSt.mine&&currentUser)q=q.eq("owner_id",currentUser.id);
+  if(pubSt.tag)q=q.contains("tags",[pubSt.tag]);
+  const k=pubSt.q.replace(/[%,()*\\]/g," ").trim();
+  if(k)q=q.or(`title.ilike.*${k}*,description.ilike.*${k}*,author_name.ilike.*${k}*`);
+  q=pubSt.sort==="pop"?q.order("download_count",{ascending:false}).order("created_at",{ascending:false}):q.order("created_at",{ascending:false});
+  const{data,error}=await (pubSt.sort==="week"&&!pubSt.mine?sb.rpc("weekly_top",{n:pubSt.n+1}):q.limit(pubSt.n+1));
+  if(error){console.error(error);L.textContent="読み込みに失敗しました。";return}
+  L.textContent=data.length?"":"該当するサウンドがありません。";
+  data.slice(0,pubSt.n).forEach((r,i)=>L.appendChild(pubCard(r,pubSt.sort!=="new"&&!pubSt.mine?i+1:0)));
+  $("pmore").innerHTML=data.length>pubSt.n?'<button class="cancel" data-p="more">もっと見る</button>':"";
+  $("ptag").textContent=pubSt.tag?"タグ: #"+pubSt.tag+"（もう一度押すと解除）":"";
+}
+let pubBtnEl=null,pubPlayId=null;
+function pubStop(){if(pubPlay){pubPlay.pause();pubPlay=null}if(pubBtnEl){pubBtnEl.textContent="▶ 試聴";pubBtnEl=null}pubPlayId=null}
+function pubPreview(r,b){
+  const same=pubPlayId===r.id&&pubPlay;pubStop();if(same)return;
+  stopCurrent();stopPreview();
+  const a=new Audio(pubUrl(r));a.volume=masterVolume;pubPlay=a;pubPlayId=r.id;pubBtnEl=b;b.textContent="■ 停止";
+  a.onended=()=>{if(pubPlay===a)pubStop()};
+  a.play().catch(()=>{if(pubPlay===a){pubStop();toast("再生できませんでした。")}});
+}
+async function pubBlob(r){const res=await fetch(pubUrl(r));if(!res.ok)throw Error("fetch");return res.blob()}
+const countDl=r=>{sb.rpc("increment_download",{p_id:r.id}).then(()=>{},()=>{})};
+async function pubDownload(r){
+  try{const b=await pubBlob(r),a=document.createElement("a"),u=URL.createObjectURL(b);a.href=u;a.download=safeName(r.title)+((r.file_name||"").match(/\.[a-z0-9]+$/i)||[".wav"])[0];document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000);countDl(r)}
+  catch(e){toast("ダウンロードに失敗しました。")}
+}
+async function pubAdd(r){
+  try{const blob=await pubBlob(r),id=uid();pubStop();await putSound({id,name:r.title,key:"",fileName:r.file_name||r.title+".wav",blob,owner:ownerKey(),order:sounds.length,origin:r.id});sounds=await getAll();render();countDl(r);openSoundModal(id,true);toast("追加しました。再生キーを押して「保存」してください。")}
+  catch(e){toast("追加に失敗しました。")}
+}
+async function pubDelete(r){
+  if(!await askConfirm(`「${r.title}」の公開を削除しますか？\n（自分のサウンドボードの音声は残ります）`,{title:"公開の削除",ok:"削除する",danger:true}))return;
+  await sb.storage.from(PUB).remove([r.owner_id+"/"+r.id]);const{error}=await sb.from("public_sounds").delete().eq("id",r.id);
+  toast(error?"削除に失敗しました。":"公開を削除しました。");loadPub();
+}
+let repTarget=null;
+function pubReport(r){
+  repTarget=r;
+  $("pubSetBox").innerHTML=`<div class="modalHead"><h2>⚑ 報告</h2><button class="close" data-p="close">×</button></div><div class="note">「${esc(r.title)}」を報告します。権利者の方は、連絡先メールアドレスの記入をお願いします。</div><div class="field"><label class="label">報告の種類</label><select class="text" id="rpCat"><option value="copyright">著作権・権利の侵害</option><option value="inappropriate">不適切な内容</option><option value="spam">迷惑・不正なファイル</option><option value="other">その他</option></select></div><div class="field"><label class="label">詳細（5〜500文字）</label><textarea class="text" id="rpDetail" rows="4" maxlength="500"></textarea></div>${F("rpMail","連絡先メールアドレス（任意）","email")}<label class="chk" style="align-items:flex-start"><input type="checkbox" id="rpOk"> <span>申告の内容は事実に基づいており、正確です。</span></label><div class="err"></div><div class="modalButtons"><button class="confirm" data-p="report">送信する</button></div>`;
+  $("pubSetBg").classList.add("show");
+}
+async function doReport(){
+  const box=$("pubSetBox"),d=$("rpDetail").value.trim(),mail=$("rpMail").value.trim();
+  if(d.length<5)return err(box,"詳細を5文字以上で入力してください。");
+  if(mail&&!EMAIL.test(mail))return err(box,"連絡先メールアドレスの形式が正しくありません。");
+  if(!$("rpOk").checked)return err(box,"申告内容が正確であることを確認してください。");
+  const{error}=await sb.from("sound_reports").insert({public_sound_id:repTarget.id,category:$("rpCat").value,reason:d.slice(0,500),contact_email:mail||null});
+  if(error)return err(box,"送信に失敗しました。時間をおいてお試しください。");
+  $("pubSetBg").classList.remove("show");toast("報告を受け付けました。内容を確認します。");
+}
+async function openPublish(s){
+  if(!s)return;if(!sb||!currentUser)return toast("公開するにはログインが必要です。");
+  if(s.origin)return toast("公開サウンドから追加したものは、再公開できません。");
+  pubTarget=s;let ex=null;
+  try{ex=(await sb.from("public_sounds").select("*").eq("owner_id",currentUser.id).eq("source_id",s.id).maybeSingle()).data}catch(_){}
+  const box=$("pubSetBox");
+  box.innerHTML=`<div class="modalHead"><h2>公開設定</h2><button class="close" data-p="close">×</button></div><div class="note" style="color:#ff8a93">⚠ 他人が権利を持つ楽曲・音源（市販曲、ゲーム・アニメ等の音声など）は、許諾なく公開できません。</div><div class="note">現在：${ex?"公開中":"非公開"}</div>${F("psTitle","タイトル","text",'maxlength="60"')}${F("psAuthor","作者名（公開されます）","text",'maxlength="30"')}${F("psDesc","説明文","text",'maxlength="200"')}${F("psTags","タグ（カンマ区切り・5つまで）","text",'placeholder="効果音, 笑い, BGM"')}<div class="field"><label class="label">利用条件（ライセンス）</label><select class="text" id="psLic"><option value="personal">私的利用のみ</option><option value="credit">クレジット表記で自由に利用可（商用可）</option><option value="nc">非商用ならクレジット表記で利用可</option><option value="free">自由に利用可（クレジット不要）</option></select></div><label class="chk" style="align-items:flex-start;margin-bottom:8px"><input type="checkbox" id="psOk"> <span>自分が作成した、または公開・配布する権利を持つ音声であり、他者の著作権その他の権利を侵害しないことを確認しました。</span></label><label class="chk" style="align-items:flex-start"><input type="checkbox" id="psAgree"> <span><a data-legal="terms">利用規約</a>・<a data-legal="privacy">プライバシーポリシー</a>・<a data-legal="copyright">著作権・削除請求</a>を読み、内容に同意します。</span></label><div class="err"></div><div class="modalButtons"><button class="confirm" data-p="publish">${ex?"更新して公開":"公開する"}</button>${ex?'<button class="cancel" data-p="unpublish">非公開に戻す</button>':""}</div>`;
+  $("psTitle").value=ex?ex.title:s.name;$("psAuthor").value=ex?ex.author_name:(PUBDEF.author||currentUser.name);$("psDesc").value=ex?ex.description:"";$("psTags").value=ex?(ex.tags||[]).join(", "):"";$("psLic").value=ex&&ex.license?ex.license:PUBDEF.lic;
+  $("pubSetBg").classList.add("show");
+}
+async function doPublish(){
+  const s=pubTarget,box=$("pubSetBox"),title=$("psTitle").value.trim();
+  if(!title)return err(box,"タイトルを入力してください。");
+  if(!$("psAgree").checked)return err(box,"利用規約・プライバシーポリシー・著作権について確認し、同意してください。");
+  if(!$("psOk").checked)return err(box,"権利に関する確認にチェックしてください。");
+  if(s.blob.size>MAX_FILE)return err(box,"10MBを超える音声は公開できません。");
+  if(!(/^(audio\/(mpeg|mp3|wav|x-wav|wave|mp4|x-m4a)|video\/mp4)$/i.test(s.blob.type)||/\.(mp3|wav|mp4|m4a)$/i.test(s.fileName||"")))return err(box,"公開できる形式は MP3 / WAV / MP4（音声）です。");
+  try{const ac=new(window.AudioContext||window.webkitAudioContext)();await ac.decodeAudioData(await s.blob.arrayBuffer());ac.close()}catch(_){return err(box,"音声として読み込めないファイルは公開できません。")}
+  const tags=[...new Set($("psTags").value.split(/[,、\s]+/).map(t=>t.trim().toLowerCase().slice(0,20)).filter(Boolean))].slice(0,5);
+  const me=currentUser.id,ex=(await sb.from("public_sounds").select("id").eq("owner_id",me).eq("source_id",s.id).maybeSingle()).data,id=ex?ex.id:uid();
+  const up=await sb.storage.from(PUB).upload(me+"/"+id,s.blob,{upsert:true,contentType:s.blob.type||"audio/wav"});if(up.error)return err(box,msgOf(up.error));
+  const r=await sb.from("public_sounds").upsert({id,owner_id:me,source_id:s.id,title,description:$("psDesc").value.trim(),tags,author_name:$("psAuthor").value.trim()||currentUser.name,license:$("psLic").value,file_name:s.fileName||"",size:s.blob.size,mime:s.blob.type||""});
+  if(r.error){if(!ex)await sb.storage.from(PUB).remove([me+"/"+id]);return err(box,/rate/i.test(r.error.message)?"公開操作は24時間に10件までです。":/limit/i.test(r.error.message)?"公開できるのは30件までです。":"公開に失敗しました。")}
+  sb.from("consents").insert({kind:"publish",version:TERMS_VER,public_sound_id:id}).then(()=>{},()=>{});
+  $("pubSetBg").classList.remove("show");toast(ex?"公開内容を更新しました。":"公開しました。");
+}
+async function doUnpublish(){
+  const me=currentUser.id,ex=(await sb.from("public_sounds").select("id").eq("owner_id",me).eq("source_id",pubTarget.id).maybeSingle()).data;
+  if(ex){await sb.storage.from(PUB).remove([me+"/"+ex.id]);await sb.from("public_sounds").delete().eq("id",ex.id)}
+  $("pubSetBg").classList.remove("show");toast("非公開に戻しました。");
+}
+$("pubBtn").onclick=openPub;
+$("publishSound").onclick=()=>{menu.classList.remove("show");openPublish(sounds.find(s=>s.id===contextId))};
+$("pubBg").onclick=e=>{if(e.target===$("pubBg"))closePub()};
+$("pubSetBg").onclick=e=>{if(e.target===$("pubSetBg"))$("pubSetBg").classList.remove("show")};
+$("pubSetBox").addEventListener("click",async e=>{
+  const a=e.target.closest("[data-p]");if(!a)return;const p=a.dataset.p;
+  if(p==="close")return $("pubSetBg").classList.remove("show");
+  a.disabled=true;try{if(p==="publish")await doPublish();else if(p==="unpublish")await doUnpublish();else if(p==="report")await doReport()}catch(x){console.error(x);err($("pubSetBox"),"エラーが発生しました。")}finally{a.disabled=false}
+});
+$("pubBox").addEventListener("click",e=>{
+  const t=e.target.dataset&&e.target.dataset.tag;if(t){pubSt.tag=pubSt.tag===t?"":t;pubSt.n=20;loadPub();return}
+  const a=e.target.closest("[data-p]");if(!a)return;const p=a.dataset.p;
+  if(p==="closePub")return closePub();
+  if(p.startsWith("sort:")){pubSt.sort=p.slice(5);pubSt.mine=false;pubSt.n=20}else if(p==="mine"){pubSt.mine=true;pubSt.n=20}else if(p==="more")pubSt.n+=20;
+  drawPub();loadPub();
+});
+const _fk=formatKey;
+formatKey=c=>c?c.split("+").map(_fk).join("+"):"";
+function comboOf(e){
+  if(/^(Control|Shift|Alt|Meta)(Left|Right)$/.test(e.code))return null;
+  if(e.metaKey)return"!";
+  const m=[e.ctrlKey&&"Ctrl",e.altKey&&"Alt",e.shiftKey&&"Shift"].filter(Boolean);
+  return m.length>1?"!":(m.length?m[0]+"+"+e.code:e.code);
+}
+/* ===== Terms / Privacy / Copyright (draft) ===== */
+// ★ここを自分の情報に書き換えてください★
+const OP={name:"あおとか",mail:"info.a0tkdeveloper@gmail.com",discord:"https://discord.gg/bUBHtz7wdF",date:"2026年10月2日"};
+const LEGAL={
+terms:()=>`利用規約
+最終更新日：${OP.date}
+
+第1条（適用）
+本規約は、${OP.name}（以下「運営者」）が提供する「SoundButton」（以下「本サービス」）の利用条件を定めるものです。利用者は、本規約に同意したうえで本サービスを利用するものとします。
+
+第2条（アカウント）
+1. 登録情報は、正確かつ最新の内容にしてください。
+2. パスワードは利用者が厳重に管理するものとし、第三者による利用について、運営者は責任を負いません。
+3. 未成年の方は、保護者の同意を得て利用してください。
+
+第3条（禁止事項）
+次の行為を禁止します。
+(1) 他者の著作権、肖像権、プライバシーその他の権利を侵害する音声の保存・公開
+(2) 法令または公序良俗に反する内容、他者への誹謗中傷・差別、過度に暴力的・性的な内容の公開
+(3) 本サービスの運営を妨げる行為（過度な負荷、不正アクセス、脆弱性の悪用、自動的な大量取得など）
+(4) 他人へのなりすまし、虚偽の情報の登録
+(5) 公開サウンドを、表示されたライセンスの範囲を超えて利用すること
+(6) その他、運営者が不適切と判断する行為
+
+第4条（利用者のコンテンツ）
+1. 利用者が保存・公開した音声などの権利は、利用者または正当な権利者に帰属します。
+2. 利用者は、公開したサウンドについて、本サービスの運営に必要な範囲（保存、配信、表示、試聴、ダウンロードの提供）で、運営者および他の利用者が利用することを許諾するものとします。
+3. 公開サウンドの利用条件は、各サウンドに表示されるライセンス（私的利用のみ、クレジット表記で利用可、非商用で利用可、自由に利用可）に従います。表示された範囲を超えて利用する場合は、作者の許諾を得るものとします。
+4. 利用者は、公開する音声について権利を有していること、第三者の権利を侵害しないことを保証し、紛争が生じたときは自己の責任と費用で解決するものとします。
+
+第5条（削除・停止）
+運営者は、権利侵害または本規約違反のおそれがあると判断した場合、事前の通知なく、コンテンツの削除・非公開、機能の制限、アカウントの停止を行うことができます。
+また、複数の利用者から報告があった公開サウンドは、確認のため、自動的に非公開となることがあります。
+
+第6条（容量などの制限）
+保存できる容量や件数（現在は、1ファイル10MB、保存の合計100MB、公開30件、公開操作は24時間に10件まで）には制限があります。対応する形式は、MP3・WAV・MP4（音声）です。音声として読み込めないファイルや、不正・迷惑なファイルの公開は禁止します。運営者は、事前の通知なく、これを変更できます。
+
+第7条（サービスの変更・停止）
+運営者は、保守、障害その他の事情により、本サービスの内容を変更し、または中断・終了することがあります。重要なデータは、利用者自身で保管してください。
+
+第8条（免責）
+運営者は、本サービスの正確性、継続性、データの保全、特定の目的への適合性を保証しません。運営者に故意または重大な過失がある場合を除き、本サービスの利用により利用者に生じた損害について責任を負いません。利用者同士のトラブルは、当事者間で解決してください。
+
+第9条（規約の変更）
+運営者は、本規約を変更できます。変更後に本サービスを利用した場合、変更に同意したものとみなします。
+
+第10条（準拠法・管轄）
+本規約は日本法に準拠します。紛争が生じた場合は、運営者の所在地を管轄する裁判所を第一審の専属的合意管轄とします。
+
+お問い合わせ：${OP.mail}
+Discordサーバー：${OP.discord}`,
+privacy:()=>`プライバシーポリシー
+最終更新日：${OP.date}
+
+1. 取得する情報
+・アカウント情報：メールアドレス、表示名、自己紹介、パスワード（認証基盤が暗号化して保管し、運営者は閲覧できません）
+・利用者が保存した情報：サウンド名、割り当てキー、音声ファイル
+・公開時に入力した情報：タイトル、説明文、タグ、作者名、公開した音声
+・報告の内容（種類、理由、連絡先メールアドレス（任意）、報告者のアカウント）
+・同意の記録（利用規約等に同意した日時、公開時に権利確認へ同意した日時）
+・技術情報：IPアドレスなど、通信の過程で認証基盤やホスティングが記録する情報
+・Windowsアプリ版の「バックグラウンドでのキー入力」（任意）：オンにしたときだけ、割り当てたキーと一致する入力を、端末内で検出します。一致しない入力は、すぐに破棄し、保存も送信もしません。\n・端末内の情報：ログイン状態の維持と音声の保存のため、ブラウザの localStorage、sessionStorage、IndexedDB を使用します。広告や、アクセス解析のための識別子は使用していません。
+
+2. 利用目的
+・ログイン、本人確認、パスワード再設定などの認証
+・サウンドの保存・同期・公開などの機能の提供
+・容量制限や不正利用の防止、権利侵害の報告への対応
+・障害への対応、本サービスの改善、重要なお知らせ
+
+3. 第三者への提供・委託
+法令に基づく場合を除き、本人の同意なく、個人情報を第三者に提供しません。ただし、サービスの提供のため、次の事業者のサービスを利用します。
+・Supabase（認証、データベース、ファイル保存。保存先のリージョンは東京です）
+・メール送信サービス（認証コードの送信）
+・jsDelivr（ライブラリの配信）
+・Discord（報告があったことの運営者への通知。報告の種類、タイトル、理由の冒頭のみ送信します）
+これらの事業者が、国外で情報を取り扱う場合があります。
+
+4. 公開される情報
+公開したサウンド（音声、タイトル、説明文、タグ、作者名）は、ログインしていない人を含め、誰でも閲覧・再生・ダウンロードできます。メールアドレスは公開されません。
+
+5. 保存期間と削除
+情報は、利用者が削除するまで保存します。アカウントを削除すると、クラウド上のアカウント情報、サウンド、公開サウンドが削除されます。端末内のデータは、ブラウザの設定から削除できます。バックアップ等から完全に消えるまで、時間がかかる場合があります。
+
+6. 開示・訂正・削除の請求
+ご自身の情報の開示、訂正、削除などは、アカウント画面から行えるほか、下記へご連絡ください。
+
+7. 安全管理
+アクセス制御や暗号化通信など、合理的な安全管理措置を講じますが、完全な安全を保証するものではありません。
+
+8. 改定
+本ポリシーは、必要に応じて変更します。
+
+運営者：${OP.name}
+連絡先：${OP.mail}
+Discordサーバー：${OP.discord}`,
+copyright:()=>`著作権・削除請求について
+最終更新日：${OP.date}
+
+1. 基本
+公開サウンドの権利は、各投稿者・権利者に帰属します。投稿者は、自分が権利を持つ音声だけを公開してください。市販の楽曲、映画・アニメ・ゲームなどの音声、他人が作った音声を、許諾なく公開することはできません。
+
+2. 利用者の方へ
+公開サウンドをダウンロードしたり、自分のボードへ追加したりした場合の利用は、各サウンドに表示されるライセンスの範囲で行ってください。範囲を超えて、再配布、商用利用、配信などで使うときは、作者の許諾を得てください。
+
+3. 権利侵害の通報
+権利侵害を見つけた場合は、各サウンドの「報告」ボタンか、下記の連絡先からご連絡ください。権利者の方は、次の情報をお知らせください。
+・権利者の氏名（団体名）と連絡先
+・侵害されている著作物など、権利の内容とその根拠
+・対象のサウンドのタイトルと作者名
+・侵害にあたると考える理由
+・申立ての内容が正確であることの確認
+
+4. 対応
+申立てを受けたら、内容を確認し、必要に応じて対象を非公開または削除します。必要な場合は、投稿者に連絡し、意見を聞くことがあります。繰り返し権利を侵害した投稿者のアカウントは、停止することがあります。
+
+5. 連絡先
+${OP.mail}（${OP.name}）
+Discordサーバー：${OP.discord}
+※個人情報を含む内容は、公開の場には書き込まず、メールでお送りください。`
+};
+function linkify(el,t){
+  el.textContent="";
+  t.split(/(https?:\/\/[^\s)）」]+|[\w.+-]+@[\w-]+(?:\.[\w-]+)+)/g).forEach((p,i)=>{
+    if(i%2){const a=document.createElement("a");a.textContent=p;a.href=p.startsWith("http")?p:"mailto:"+p;a.target="_blank";a.rel="noopener noreferrer";a.style.color="#8ab4ff";el.appendChild(a)}
+    else el.appendChild(document.createTextNode(p));
+  });
+}
+function openLegal(k){window.open(k+".html","_blank","noopener");return;
+  const T=(key,l)=>`<a data-lt="${key}" class="${k===key?"on":""}">${l}</a>`;
+  $("legalBox").innerHTML=`<div class="modalHead"><h2>規約・ポリシー</h2><button class="close" data-lt="close">×</button></div><div class="tabs">${T("terms","利用規約")}${T("privacy","プライバシー")}${T("copyright","著作権・削除請求")}</div><div id="legalText" style="max-height:55vh;overflow:auto;white-space:pre-wrap;line-height:1.8;font-size:13px"></div>`;
+  linkify($("legalText"),LEGAL[k]());$("legalBg").classList.add("show");
+}
+document.addEventListener("click",e=>{const a=e.target.closest("[data-legal]");if(a){e.preventDefault();openLegal(a.dataset.legal)}});
+$("legalBox").addEventListener("click",e=>{const a=e.target.closest("[data-lt]");if(!a)return;a.dataset.lt==="close"?$("legalBg").classList.remove("show"):openLegal(a.dataset.lt)});
+$("legalBg").onclick=e=>{if(e.target===$("legalBg"))$("legalBg").classList.remove("show")};
+/* live modifier display while picking a key */
+function showMods(e){const m=[e.ctrlKey&&"Ctrl",e.altKey&&"Alt",e.shiftKey&&"Shift"].filter(Boolean);$("keyValue").textContent=m.length?m.join("+")+"+…":"入力待ち"}
+document.addEventListener("keyup",e=>{if(soundModal.classList.contains("show")&&waitingKey)showMods(e)},true);
+const TERMS_VER="2026-10-02",LIC={personal:"私的利用のみ",credit:"クレジット表記で利用可（商用可）",nc:"非商用・クレジット表記で利用可",free:"自由に利用可"};
+const CODES=[["メールアドレスまたはパスワードが正しくありません", "101"], ["既に登録されています", "101"], ["現在のパスワードが正しくありません", "101"], ["パスワードが正しくありません", "101"], ["現在と同じパスワード", "101"], ["delete_my_account", "101"], ["認証コードが正しくない", "101"], ["メールアドレスの形式", "112"], ["パスワードは8文字以上", "112"], ["確認用パスワードが一致しません", "112"], ["表示名を入力", "112"], ["詳細を5文字以上", "112"], ["タイトルを入力", "112"], ["クラウドへの保存に失敗", "102"], ["クラウドとの同期に失敗", "102"], ["保存に失敗しました。", "102"], ["保存領域を初期化", "102"], ["音声データがありません", "102"], ["10MBを超えるファイルはクラウド", "103"], ["クラウドの容量（100MB）", "103"], ["10MBを超える音声は公開できません", "103"], ["公開できるのは30件", "103"], ["MP3 / WAV / MP4 のみ対応", "104"], ["公開できる形式は", "104"], ["音声として読み込めない", "104"], ["このファイルを編集できませんでした", "104"], ["公開に失敗しました", "105"], ["削除に失敗しました。", "105"], ["再公開できません", "105"], ["読み込みに失敗しました", "105"], ["送信に失敗しました", "106"], ["ダウンロードに失敗しました", "107"], ["追加に失敗しました", "107"], ["再生できませんでした", "108"], ["プレビューを作れませんでした", "108"], ["サーバーに接続できません", "109"], ["MP3エンコーダーを読み込めません", "109"], ["使用量を取得できませんでした", "109"], ["送信回数の上限", "110"], ["24時間に10件", "110"], ["同意が必要です", "111"], ["権利に関する確認", "111"], ["公開するにはログインが必要", "111"], ["利用規約・プライバシーポリシー・著作権について確認", "111"], ["MP3の書き出しに失敗", "113"]];
+function withCode(m){
+  if(!m||/エラーコード/.test(m))return m;
+  const h=CODES.find(c=>m.includes(c[0])),code=h?h[1]:(/失敗|できません|エラー|正しくありません|必要です|超える|までです|上限/.test(m)?"199":null);
+  return code?`${m}（エラーコード: ${code}）`:m;
+}
+const _toast=toast;toast=m=>_toast(withCode(m));
+/* ===== Theme / tabbar / notifications / board sharing ===== */
+function setTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem("sb_theme2",t)}catch(_){}$("themeBtn").textContent=t==="light"?"☀️":"🌙";document.querySelector('meta[name=theme-color]').content=t==="light"?"#f4f6f9":"#0b0d11";{const f=document.getElementById("favicon");if(f)f.href=t==="light"?"icon-light-64.png":"icon-dark-64.png"}if(editorBuffer)drawWave()}
+$("themeBtn").onclick=()=>setTheme(document.documentElement.dataset.theme==="light"?"dark":"light");
+setTheme(document.documentElement.dataset.theme||"dark");
+$("tabbar").addEventListener("click",e=>{const b=e.target.closest("[data-t]");if(!b)return;const t=b.dataset.t;
+  document.querySelectorAll(".modalBg.show").forEach(m=>m.classList.remove("show"));pubStop();
+  if(t==="board")scrollTo({top:0,behavior:"smooth"});else if(t==="pub")openPub();else if(t==="notif")openNotif();else if(t==="set")openSettings();else $("accountBtn").click()});
+["notifBg","shareBg","boardBg","setBg","keyBg","admBg","betaBg"].forEach(i=>{$(i).onclick=e=>{if(e.target===$(i)){$(i).classList.remove("show");pubStop()}}});
+CODES.push(["共有リンクを作れませんでした","114"],["共有ボードを読み込めませんでした","114"],["共有するにはログインが必要","111"]);
+/* notifications */
+function setBadge(n){$("notifN").textContent=n?" "+n:"";$("notifN2").textContent=n||"";$("notifN2").style.display=n?"flex":"none"}
+async function loadNotifs(){
+  if(!sb||!currentUser){setBadge(0);return[]}
+  const{data}=await sb.from("notifications").select("*").order("created_at",{ascending:false}).limit(30);
+  setBadge((data||[]).filter(x=>!x.read).length);return data||[];
+}
+async function openNotif(){
+  if(!currentUser)return showAuth("login");
+  const list=await loadNotifs(),box=$("notifBox");
+  box.innerHTML='<div class="modalHead"><h2>🔔 通知</h2><button class="close" data-n="close">×</button></div><div id="nlist" style="max-height:55vh;overflow:auto"></div><div class="modalButtons"><button class="cancel" data-n="read">すべて既読にする</button></div>';
+  const L=$("nlist");if(!list.length)L.textContent="通知はありません。";
+  list.forEach(x=>{const d=document.createElement("div"),t=document.createElement("div"),b=document.createElement("div"),s=document.createElement("div");d.className="pcard";t.style.fontWeight=x.read?"400":"700";t.textContent=(x.read?"":"● ")+x.title;b.className="note";b.style.margin="6px 0 0";b.textContent=x.body;s.className="sub";s.textContent=new Date(x.created_at).toLocaleString("ja-JP");d.append(t,b,s);L.appendChild(d)});
+  $("notifBg").classList.add("show");
+}
+$("notifBox").addEventListener("click",async e=>{const a=e.target.closest("[data-n]");if(!a)return;if(a.dataset.n==="close")return $("notifBg").classList.remove("show");await sb.from("notifications").update({read:true}).eq("read",false);openNotif()});
+$("notifBtn").onclick=openNotif;
+setInterval(()=>{if(currentUser&&!document.hidden)loadNotifs()},60000);
+/* board sharing */
+const boardLink=id=>(location.origin&&location.origin!=="null"?location.origin+location.pathname:location.pathname)+"?board="+id;
+async function openShare(){
+  if(!sb||!currentUser)return toast("共有するにはログインが必要です。");
+  const{data}=await sb.from("public_sounds").select("id,title,source_id").eq("owner_id",currentUser.id).order("created_at",{ascending:false});
+  $("shareBox").innerHTML=`<div class="modalHead"><h2>🔗 ボードを共有</h2><button class="close" data-sh="close">×</button></div><div class="note">共有できるのは、公開済みのサウンドです。選んだサウンドと再生キーの割り当てを、リンクで共有できます。</div>${F("shTitle","ボードの名前","text",'maxlength="40"')}<div id="shList" style="max-height:34vh;overflow:auto"></div><div class="err"></div><div class="modalButtons"><button class="confirm" data-sh="make">リンクを作る</button></div><div id="shOut"></div>`;
+  const L=$("shList");if(!data||!data.length)L.textContent="公開済みのサウンドがありません。先に「公開設定」から公開してください。";
+  (data||[]).forEach(r=>{const l=document.createElement("label"),c=document.createElement("input");l.className="chk";l.style.margin="6px 0";c.type="checkbox";c.value=r.id;c.dataset.src=r.source_id;c.checked=true;l.append(c,document.createTextNode(" "+r.title));L.appendChild(l)});
+  $("shareBg").classList.add("show");
+}
+async function makeShare(){
+  const box=$("shareBox"),title=$("shTitle").value.trim(),cs=[...$("shList").querySelectorAll("input:checked")];
+  if(!title)return err(box,"ボードの名前を入力してください。");
+  if(!cs.length)return err(box,"サウンドを1つ以上選んでください。");
+  const items=cs.map(c=>{const l=sounds.find(s=>s.id===c.dataset.src);return{id:c.value,key:(l&&l.key)||""}}),id=crypto.randomUUID().replace(/-/g,"").slice(0,10);
+  const{error}=await sb.from("shared_boards").insert({id,title,items});if(error)return err(box,"共有リンクを作れませんでした。");
+  const url=boardLink(id),o=$("shOut"),i=document.createElement("input"),b=document.createElement("button");
+  o.innerHTML='<div class="note" style="margin-top:14px">共有リンク：</div>';i.className="text";i.readOnly=true;i.value=url;i.onclick=()=>i.select();
+  b.className="sbtn";b.style.marginTop="8px";b.textContent="コピー";b.onclick=()=>navigator.clipboard.writeText(url).then(()=>toast("コピーしました。"),()=>toast("コピーできませんでした。"));
+  o.append(i,b);
+}
+$("shareBox").addEventListener("click",async e=>{const a=e.target.closest("[data-sh]");if(!a)return;if(a.dataset.sh==="close")return $("shareBg").classList.remove("show");a.disabled=true;try{await makeShare()}catch(x){console.error(x);err($("shareBox"),"共有リンクを作れませんでした。")}finally{a.disabled=false}});
+let boardCtx=null;
+async function viewBoard(id){
+  if(!sb)return;
+  const{data:b}=await sb.from("shared_boards").select("*").eq("id",id).maybeSingle();
+  if(!b)return toast("共有ボードを読み込めませんでした。");
+  const{data:rows}=await sb.from("public_sounds").select("*").in("id",(b.items||[]).map(x=>x.id)),by=new Map((rows||[]).map(r=>[r.id,r])),list=(b.items||[]).filter(x=>by.has(x.id));
+  $("boardBox").innerHTML='<div class="modalHead"><h2></h2><button class="close" data-bd="close">×</button></div><div class="note">共有されたボードです。「すべて追加」で自分のボードに追加できます（再生キーも引き継ぎます。すでに使っているキーは空欄になります）。</div><div id="bdList" style="max-height:44vh;overflow:auto"></div><div class="modalButtons"><button class="confirm" data-bd="all">すべて自分のボードへ追加</button></div>';
+  $("boardBox").querySelector("h2").textContent="🎛 "+b.title;
+  list.forEach(x=>{const r=by.get(x.id),d=document.createElement("div"),t=document.createElement("div"),s=document.createElement("div"),row=document.createElement("div"),pb=document.createElement("button");
+    d.className="pcard";t.style.fontWeight="700";t.textContent=r.title+(x.key?"　["+formatKey(x.key)+"]":"");s.className="sub";s.textContent="作者: "+(r.author_name||"名無し")+"　ライセンス: "+(LIC[r.license]||LIC.personal);
+    row.className="prow";pb.className="sbtn";pb.textContent="▶ 試聴";pb.onclick=()=>pubPreview(r,pb);row.appendChild(pb);d.append(t,s,row);$("bdList").appendChild(d)});
+  boardCtx={list,by};$("boardBg").classList.add("show");
+}
+async function addBoard(){
+  let n=0;
+  for(const x of boardCtx.list){const r=boardCtx.by.get(x.id),blob=await pubBlob(r),used=sounds.some(s=>s.key&&s.key===x.key);
+    await putSound({id:uid(),name:r.title,key:used?"":(x.key||""),fileName:r.file_name||r.title+".wav",blob,owner:ownerKey(),order:sounds.length,origin:r.id});n++;countDl(r);sounds=await getAll()}
+  render();pubStop();$("boardBg").classList.remove("show");toast(n+"件を自分のボードに追加しました。");
+}
+$("boardBox").addEventListener("click",async e=>{const a=e.target.closest("[data-bd]");if(!a)return;if(a.dataset.bd==="close"){pubStop();return $("boardBg").classList.remove("show")}a.disabled=true;try{await addBoard()}catch(x){console.error(x);toast("追加に失敗しました。")}finally{a.disabled=false}});
+{const bid=new URLSearchParams(location.search).get("board");if(bid)setTimeout(()=>viewBoard(bid),800)}
+function askConfirm(msg,o={}){
+  return new Promise(res=>{
+    const bg=$("dlgBg"),box=$("dlgBox"),h=document.createElement("div"),t=document.createElement("h2"),p=document.createElement("div"),bt=document.createElement("div"),c=document.createElement("button"),k=document.createElement("button");
+    box.innerHTML="";h.className="modalHead";t.textContent=o.title||"確認";h.appendChild(t);
+    p.className="note";p.style.cssText="white-space:pre-wrap;font-size:14px;margin:0";p.textContent=msg;
+    bt.className="modalButtons";c.className="cancel";c.textContent=o.cancel||"キャンセル";k.className="confirm"+(o.danger?" dangerBtn":"");k.textContent=o.ok||"OK";
+    const done=v=>{bg.classList.remove("show");window.removeEventListener("keydown",onKey,true);res(v)};
+    const onKey=e=>{if(e.key==="Escape"||e.key==="Enter"){e.stopPropagation();e.preventDefault();done(e.key==="Enter")}};
+    c.onclick=()=>done(false);k.onclick=()=>done(true);bg.onclick=e=>{if(e.target===bg)done(false)};
+    window.addEventListener("keydown",onKey,true);
+    bt.append(c,k);box.append(h,p,bt);bg.classList.add("show");k.focus();
+  });
+}
+/* ===== Settings / language (experimental English) ===== */
+const LANG=(()=>{try{return localStorage.getItem("sb_lang")||"ja"}catch(_){return"ja"}})();
+function openSettings(){
+  const th=document.documentElement.dataset.theme,on=c=>c?"on":"",tg=(d,l,a)=>`<a data-s="${d}" class="${on(a)}">${l}</a>`,m=(currentUser&&currentUser.meta)||{},nd=m.notif_dl!=="off",nh=m.notif_hidden!=="off";
+  const sub=t=>`<div class="note" style="margin:8px 0 6px">${t}</div>`;
+  $("setBox").innerHTML=`<div class="modalHead"><h2>⚙️ 設定</h2><button class="close" data-s="close">×</button></div>
+  <div class="field"><label class="label">テーマ</label><div class="tabs">${tg("dark","ダーク",th!=="light")}${tg("light","ライト",th==="light")}</div></div>
+  <div class="field"><label class="label">言語 / Language</label><div class="tabs">${tg("ja","日本語",LANG==="ja")}${tg("en","English (Beta)",LANG==="en")}</div><div class="note">English表示は試験運用機能です。一部の文章は日本語のまま表示されます。</div></div>
+  <div class="field"><label class="label">再生</label><div class="tabs">${tg("mode:exclusive","ほかの音を止める",PLAY.mode!=="overlap")}${tg("mode:overlap","重ねて鳴らす",PLAY.mode==="overlap")}</div><div class="tabs">${tg("rep:off","長押し連打: オフ",!PLAY.repeat)}${tg("rep:on","長押し連打: オン",PLAY.repeat)}</div><div class="note">長押し連打は、短い音向けです。</div></div>
+  <div class="field"><label class="label">起動時の音量</label><select class="text" id="stVol"><option value="">前回の音量を使う</option><option value="100">100%</option><option value="80">80%</option><option value="60">60%</option><option value="40">40%</option><option value="20">20%</option></select></div>
+  ${currentUser?`<div class="field"><label class="label">通知の設定</label>${sub("ダウンロード数の通知")}<div class="tabs">${tg("nt:dl:on","オン",nd)}${tg("nt:dl:off","オフ",!nd)}</div>${sub("非公開になったときの通知")}<div class="tabs">${tg("nt:hidden:on","オン",nh)}${tg("nt:hidden:off","オフ",!nh)}</div></div>
+  <div class="field"><label class="label">公開の初期値</label><input class="text" id="pdAuthor" maxlength="30" placeholder="作者名の初期値（空欄なら表示名）"><select class="text" id="pdLic" style="margin-top:8px"><option value="personal">私的利用のみ</option><option value="credit">クレジット表記で自由に利用可（商用可）</option><option value="nc">非商用ならクレジット表記で利用可</option><option value="free">自由に利用可（クレジット不要）</option></select></div>`:`<div class="note" style="margin-bottom:14px">通知・公開・端末の設定は、ログインすると表示されます。</div>`}
+  <div class="field"><label class="label">アクセシビリティ</label>${sub("文字の大きさ")}<div class="tabs">${tg("tx:1","標準",A11Y.size==="1")}${tg("tx:1.15","大",A11Y.size==="1.15")}${tg("tx:1.3","特大",A11Y.size==="1.3")}</div>${sub("アニメーションを減らす")}<div class="tabs">${tg("rm:on","オン",A11Y.motion)}${tg("rm:off","オフ",!A11Y.motion)}</div>${sub("コントラストを強める")}<div class="tabs">${tg("hc:on","オン",A11Y.contrast)}${tg("hc:off","オフ",!A11Y.contrast)}</div></div>
+  <div class="field"><label class="label">データ</label><div class="note" id="stUse" style="margin:0 0 8px"></div><div class="prow"><button class="sbtn" data-s="export">バックアップを書き出す</button><button class="sbtn" data-s="import">バックアップを読み込む</button>${currentUser?'<button class="sbtn" data-s="rebuild">キャッシュを再取得</button>':""}</div><div class="note">この端末のサウンドをZIPで保存・復元できます。「キャッシュを再取得」は、表示がおかしいときに、同期済みのサウンドをクラウドから取得し直します（通信が発生します）。</div></div>
+  ${currentUser?'<div class="field"><label class="label">端末の管理</label><div class="prow"><button class="sbtn" data-s="others">ほかの端末をログアウト</button></div></div>':""}
+  <div class="prow" style="margin-bottom:14px"><button class="sbtn" data-s="keymap">⌨️ キー割り当て一覧</button>${isAdmin?'<button class="sbtn" data-s="admin">🛡 管理者画面</button>':""}</div>
+  <div class="links"><a data-legal="terms">利用規約</a><a data-legal="privacy">プライバシーポリシー</a><a data-legal="copyright">著作権・削除請求</a></div>`;
+  $("stVol").value=PLAY.startVol==null?"":String(PLAY.startVol);
+  if(currentUser){$("pdAuthor").value=PUBDEF.author||"";$("pdLic").value=PUBDEF.lic}
+  localUsage().then(b=>{const e=$("stUse");if(e)e.textContent="この端末の使用量: "+(b/1048576).toFixed(1)+"MB"});
+  $("setBg").classList.add("show");
+}
+async function setLang(l){
+  if(l===LANG)return;
+  if(l==="en"&&!await askConfirm("This feature is experimental. Unexpected behavior or bugs may occur, and text may not be translated correctly.\nDo you want to continue?",{title:"Experimental feature",ok:"Continue",cancel:"Cancel"}))return;
+  try{localStorage.setItem("sb_lang",l)}catch(_){}
+  location.reload();
+}
+$("setBox").addEventListener("click",e=>{
+  const a=e.target.closest("[data-s]");if(!a)return;const v=a.dataset.s;
+  if(v==="close")return $("setBg").classList.remove("show");
+  if(v==="dark"||v==="light"){setTheme(v);openSettings()}
+  else if(v==="ja"||v==="en")setLang(v);
+  else if(v.startsWith("mode:")){PLAY.mode=v.slice(5);savePlay();openSettings()}
+  else if(v.startsWith("rep:")){PLAY.repeat=v==="rep:on";savePlay();openSettings()}
+  else if(v==="export")exportBackup().catch(x=>{console.error(x);toast("バックアップを書き出せませんでした。")});
+  else if(v==="import")$("bkFile").click();
+  else if(v==="keymap"){$("setBg").classList.remove("show");openKeyMap()}
+  else if(v==="admin"){$("setBg").classList.remove("show");openAdmin()}
+  else if(v.startsWith("nt:"))setNotif(v);
+  else if(v.startsWith("tab:"))openSettings(v.slice(4));
+  else if(v==="fontpick")$("fontFile").click();
+  else if(v==="fontreset")resetFont();
+  else if(v.startsWith("bg:")){PLAY.bg=v==="bg:on";savePlay();syncBgKeys();openSettings()}
+  else if(v==="others")logoutOthers();
+  else if(v==="rebuild")rebuildCache();
+  else if(v.startsWith("tx:")){A11Y.size=v.slice(3);saveA11y();applyA11y();openSettings()}
+  else if(v.startsWith("rm:")){A11Y.motion=v==="rm:on";saveA11y();applyA11y();openSettings()}
+  else if(v.startsWith("hc:")){A11Y.contrast=v==="hc:on";saveA11y();applyA11y();openSettings()}
+});
+$("setBtn").onclick=openSettings;
+$("setBg").onclick=e=>{if(e.target===$("setBg"))$("setBg").classList.remove("show")};
+if(LANG==="en"){
+  const EN={
+"マイサウンドボード":"My Soundboard","キーを押すだけで登録したサウンドを再生できます。":"Play your sounds just by pressing a key.","サウンドを追加":"Add sound","マスター音量":"Master volume","サウンド名":"Sound name","音声ファイル":"Audio file","ファイルを選択":"Choose file","MP3 / WAV / MP4 またはドラッグ＆ドロップ":"MP3 / WAV / MP4 or drag & drop","再生キー":"Play key","クリックして、キー（Ctrl / Alt / Shift＋1キーも可）を押してください":"Click, then press a key (Ctrl / Alt / Shift + 1 key also works)","未設定":"Not set","キャンセル":"Cancel","保存":"Save","音声を編集":"Edit audio","開始位置（秒）":"Start (sec)","終了位置（秒）":"End (sec)","フェードイン":"Fade in","フェードアウト":"Fade out","秒":"sec","元音声":"Original","編集後をプレビュー":"Preview edited","上書き保存":"Overwrite","WAVでダウンロード":"Download as WAV","MP3でダウンロード":"Download as MP3","利用規約":"Terms of Service","プライバシーポリシー":"Privacy Policy","著作権・削除請求":"Copyright & Takedown","エラーコード":"Error codes","ボード":"Board","公開":"Public","通知":"Notifications","アカウント":"Account","設定":"Settings","編集":"Edit","公開設定":"Publish settings","複製":"Duplicate","上へ移動":"Move up","下へ移動":"Move down","削除":"Delete","公開サウンド":"Public sounds","ログイン":"Log in","再生":"Play","再生中":"Playing","サウンドを編集":"Edit sound","現在のキー":"Current key","再生キーを設定":"Set play key","キーを押してください…":"Press a key…","入力待ち":"Waiting for input","設定されたキー":"Key set","例：拍手":"e.g. Applause","音声を読み込んでいます…":"Loading audio…","MP3を作成しています…":"Creating MP3…",
+"MP3 / WAV / MP4 のみ対応しています。":"Only MP3 / WAV / MP4 are supported.","サウンド名を入力してください。":"Please enter a sound name.","音声ファイルを選択してください。":"Please choose an audio file.","再生キーを設定してください。":"Please set a play key.","そのキーはすでに使用されています。別のキーを選んでください。":"That key is already in use. Please choose another.","サウンドを更新しました。":"Sound updated.","サウンドを追加しました。":"Sound added.","保存に失敗しました。もう一度試してください。":"Failed to save. Please try again.","保存に失敗しました。":"Failed to save.","音声データがありません。":"No audio data.","音声を再生できませんでした。":"Could not play the audio.","再生できませんでした。":"Could not play.","削除しました。":"Deleted.","複製しました。キーを設定してください。":"Duplicated. Please set a key.","このファイルを編集できませんでした。":"Could not edit this file.","プレビューを作れませんでした。":"Could not create the preview.","WAVを書き出しました。":"WAV exported.","WAVの書き出しに失敗しました。":"Failed to export WAV.","MP3を書き出しました。":"MP3 exported.","MP3エンコーダーを読み込めません。オンライン接続を確認してください。":"Could not load the MP3 encoder. Check your connection.","MP3の書き出しに失敗しました。":"Failed to export MP3.","元の音声を上書き保存しました。":"Original audio overwritten.","上書きする":"Overwrite","削除する":"Delete","完全に削除する":"Delete permanently","確認":"Confirm","OK":"OK","サウンドの削除":"Delete sound","上書き保存 ":"Overwrite","アカウントの削除":"Delete account","公開の削除":"Remove from public","試験運用機能の機能":"Experimental feature",
+"この機能は試験運用機能です。予期せぬ動作や不具合が起きる可能性があります。また、正常に翻訳されない場合があります。\n続けますか？":"This feature is experimental. Unexpected behavior or bugs may occur, and text may not be translated correctly.\nContinue?","元の音声を、編集後の内容で上書きします。\nこの変更は元に戻せません。":"The original audio will be overwritten with the edited version.\nThis cannot be undone.","アカウントと、クラウド・この端末の全サウンドを完全に削除します。\nこの操作は元に戻せません。":"Your account and all sounds in the cloud and on this device will be permanently deleted.\nThis cannot be undone.",
+"ログイン":"Log in","メールアドレス":"Email","パスワード":"Password","ログイン状態を維持する（30日）":"Keep me logged in (30 days)","新規登録":"Sign up","パスワードを忘れた方":"Forgot password?","アカウントなしで使う（ゲスト）":"Use without an account (guest)","新規アカウント登録":"Create account","表示名":"Display name","パスワード（8文字以上・英数字）":"Password (8+ chars, letters & numbers)","パスワード（確認）":"Password (confirm)","ゲストで作ったサウンドをこのアカウントに引き継ぐ":"Move my guest sounds to this account","登録する":"Sign up","ログインへ戻る":"Back to log in","メールアドレスの認証":"Verify your email","認証コード":"Verification code","認証する":"Verify","コードを再送":"Resend code","パスワードのリセット":"Reset password","登録したメールアドレスに認証コードを送信します。":"We will send a verification code to your email.","コードを送信":"Send code","新しいパスワードの設定":"Set a new password","新しいパスワード":"New password","新しいパスワード（確認）":"New password (confirm)","パスワードを変更":"Change password","利用規約":"Terms of Service","と":" and ","に同意する":" — I agree","プロフィール":"Profile","クラウド使用量":"Cloud usage","読み込み中…":"Loading…","自己紹介":"Bio","プロフィールを保存":"Save profile","今すぐ同期":"Sync now","ボードを共有":"Share board","ログアウト":"Log out","現在のパスワード":"Current password","新しいパスワード（8文字以上・英数字）":"New password (8+ chars, letters & numbers)","アカウントを削除":"Delete account","パスワードを入力して確認":"Enter your password to confirm","アカウントと、登録した全サウンドが削除されます。この操作は元に戻せません。":"Your account and all your sounds will be deleted. This cannot be undone.","✓ 認証済み":"✓ Verified",
+"認証コードを再送しました。":"Verification code resent.","メール認証が完了しました。":"Email verified.","パスワードを変更しました。ログインしてください。":"Password changed. Please log in.","プロフィールを保存しました。":"Profile saved.","パスワードを変更しました。他の端末はログアウトされます。":"Password changed. Other devices will be logged out.","アカウントを削除しました。":"Account deleted.","ログアウトしました。ゲストとして使用中です。":"Logged out. You are using the app as a guest.","同期しました。":"Synced.","サーバーに接続できません。ネット接続を確認してください。":"Cannot connect to the server. Check your connection.","サーバーに接続できません。":"Cannot connect to the server.","エラーが発生しました。もう一度お試しください。":"An error occurred. Please try again.","エラーが発生しました。":"An error occurred.","パスワードは8文字以上で、英字と数字を含めてください。":"Password must be 8+ characters with letters and numbers.","メールアドレスまたはパスワードが正しくありません。":"Incorrect email or password.","送信回数の上限です。しばらく待ってからお試しください。":"Sending limit reached. Please wait and try again.","認証コードが正しくないか、期限切れです。":"The code is incorrect or has expired.","現在と同じパスワードは使えません。":"You cannot reuse your current password.","表示名を入力してください。":"Please enter a display name.","利用規約とプライバシーポリシーへの同意が必要です。":"You must agree to the Terms and Privacy Policy.","メールアドレスの形式が正しくありません。":"Invalid email format.","確認用パスワードが一致しません。":"Passwords do not match.","このメールアドレスは既に登録されています。":"This email is already registered.","現在のパスワードが正しくありません。":"Current password is incorrect.","パスワードが正しくありません。":"Incorrect password.","クラウドへの保存に失敗しました。":"Failed to save to the cloud.","クラウドとの同期に失敗しました。":"Failed to sync with the cloud.","使用量を取得できませんでした。":"Could not load usage.",
+"検索":"Search","タイトル・説明・作者名で検索":"Search by title, description or author","新着":"New","週間":"Weekly","累計":"All-time","自分の公開":"Mine","もっと見る":"Load more","▶ 試聴":"▶ Preview","試聴":"Preview","ダウンロード":"Download","自分のボードへ":"Add to my board","公開を削除":"Remove","報告":"Report","停止":"Stop","読み込みに失敗しました。":"Failed to load.","該当するサウンドがありません。":"No matching sounds.","名無し":"Anonymous","公開サウンドの権利は各作者にあります。利用前に作者の許諾条件をご確認ください。権利侵害の疑いは「報告」からお知らせください。":"Rights to public sounds belong to their authors. Please check the license before use. Report suspected infringement with the Report button.","私的利用のみ":"Personal use only","クレジット表記で利用可（商用可）":"Free to use with credit (commercial OK)","非商用・クレジット表記で利用可":"Non-commercial with credit","自由に利用可":"Free to use","クレジット表記で自由に利用可（商用可）":"Free to use with credit (commercial OK)","非商用ならクレジット表記で利用可":"Non-commercial use with credit","自由に利用可（クレジット不要）":"Free to use (no credit needed)","追加しました。再生キーを押して「保存」してください。":"Added. Press a play key and click Save.","追加に失敗しました。":"Failed to add.","ダウンロードに失敗しました。":"Failed to download.","削除に失敗しました。":"Failed to delete.","公開を削除しました。":"Removed from public.","公開するにはログインが必要です。":"You need to log in to publish.","公開サウンドから追加したものは、再公開できません。":"Sounds added from public sounds cannot be re-published.","公開しました。":"Published.","公開内容を更新しました。":"Public listing updated.","非公開に戻しました。":"Unpublished.","公開に失敗しました。":"Failed to publish.","公開できるのは30件までです。":"You can publish up to 30 sounds.","公開操作は24時間に10件までです。":"Up to 10 publish actions per 24 hours.","10MBを超える音声は公開できません。":"Audio over 10MB cannot be published.","公開できる形式は MP3 / WAV / MP4（音声）です。":"Only MP3 / WAV / MP4 (audio) can be published.","音声として読み込めないファイルは公開できません。":"Files that cannot be read as audio cannot be published.","タイトルを入力してください。":"Please enter a title.","権利に関する確認にチェックしてください。":"Please confirm the rights checkbox.","利用規約・プライバシーポリシー・著作権について確認し、同意してください。":"Please read and agree to the Terms, Privacy Policy and Copyright notice.",
+"タイトル":"Title","作者名（公開されます）":"Author name (public)","説明文":"Description","タグ（カンマ区切り・5つまで）":"Tags (comma-separated, up to 5)","利用条件（ライセンス）":"License","更新して公開":"Update & publish","公開する":"Publish","非公開に戻す":"Unpublish","現在：公開中":"Status: Public","現在：非公開":"Status: Private","⚠ 他人が権利を持つ楽曲・音源（市販曲、ゲーム・アニメ等の音声など）は、許諾なく公開できません。":"⚠ You may not publish music or audio owned by others (commercial songs, game/anime audio, etc.) without permission.","自分が作成した、または公開・配布する権利を持つ音声であり、他者の著作権その他の権利を侵害しないことを確認しました。":"I confirm that I created this audio or have the right to publish and distribute it, and that it does not infringe others' rights.","を読み、内容に同意します。":" — I have read and agree.",
+"報告の種類":"Report type","著作権・権利の侵害":"Copyright / rights infringement","不適切な内容":"Inappropriate content","迷惑・不正なファイル":"Spam / malicious file","その他":"Other","詳細（5〜500文字）":"Details (5–500 characters)","連絡先メールアドレス（任意）":"Contact email (optional)","送信する":"Send","申告の内容は事実に基づいており、正確です。":"My report is truthful and accurate.","詳細を5文字以上で入力してください。":"Please enter at least 5 characters.","連絡先メールアドレスの形式が正しくありません。":"Invalid contact email.","申告内容が正確であることを確認してください。":"Please confirm that your report is accurate.","送信に失敗しました。時間をおいてお試しください。":"Failed to send. Please try again later.","報告を受け付けました。内容を確認します。":"Report received. We will review it.",
+"通知はありません。":"No notifications.","すべて既読にする":"Mark all as read","ボードを共有 ":"Share board","共有できるのは、公開済みのサウンドです。選んだサウンドと再生キーの割り当てを、リンクで共有できます。":"Only published sounds can be shared. Selected sounds and key assignments are shared via a link.","ボードの名前":"Board name","リンクを作る":"Create link","共有リンク：":"Share link:","コピー":"Copy","コピーしました。":"Copied.","コピーできませんでした。":"Could not copy.","共有リンクを作れませんでした。":"Could not create the share link.","共有ボードを読み込めませんでした。":"Could not load the shared board.","共有するにはログインが必要です。":"You need to log in to share.","公開済みのサウンドがありません。先に「公開設定」から公開してください。":"You have no published sounds. Publish some from Publish settings first.","ボードの名前を入力してください。":"Please enter a board name.","サウンドを1つ以上選んでください。":"Please select at least one sound.","共有されたボードです。「すべて追加」で自分のボードに追加できます（再生キーも引き継ぎます。すでに使っているキーは空欄になります）。":"This is a shared board. Add everything to your board (keys are kept; keys already in use are left blank).","すべて自分のボードへ追加":"Add all to my board","テーマ":"Theme","ダーク":"Dark","ライト":"Light","言語 / Language":"Language","English (Beta)":"English (Beta)","日本語":"日本語 (Japanese)","English表示は試験運用機能です。一部の文章は日本語のまま表示されます。":"English is an experimental feature. Some text may remain in Japanese.","⚙️ 設定":"⚙️ Settings","ほかの音を止める":"Stop other sounds","重ねて鳴らす":"Layer sounds","長押し連打: オフ":"Hold to repeat: Off","長押し連打: オン":"Hold to repeat: On","長押し連打は、短い音向けです。":"Hold-to-repeat suits short sounds.","起動時の音量":"Startup volume","前回の音量を使う":"Use last volume","データ":"Data","バックアップを書き出す":"Export backup","バックアップを読み込む":"Import backup","この端末のサウンドをZIPで保存・復元できます。":"Save and restore this device's sounds as a ZIP.","キー割り当て一覧":"Key assignments","重複しているキー":"Duplicate keys","緑＝使用中、赤＝重複。クリックで編集できます。":"Green = in use, red = duplicate. Click to edit.","起動時の音量を設定しました。":"Startup volume saved.","バックアップを書き出しました。":"Backup exported.","バックアップを読み込めませんでした。":"Could not import the backup.","バックアップを書き出せませんでした。":"Could not export the backup.","通知の設定":"Notification settings","ダウンロード数の通知":"Download milestone notifications","非公開になったときの通知":"Notification when a sound is unpublished","オン":"On","オフ":"Off","公開の初期値":"Publishing defaults","作者名の初期値（空欄なら表示名）":"Default author name (blank = display name)","アクセシビリティ":"Accessibility","文字の大きさ":"Text size","標準":"Normal","大":"Large","特大":"Extra large","アニメーションを減らす":"Reduce motion","コントラストを強める":"Increase contrast","キャッシュを再取得":"Re-download cache","ほかの端末をログアウト":"Log out other devices","端末の管理":"Devices","通知・公開・端末の設定は、ログインすると表示されます。":"Notification, publishing and device settings appear after you log in.","ほかの端末をログアウトしました。":"Other devices were logged out.","再取得しました。":"Cache re-downloaded.","設定を保存しました。":"Settings saved.","キーを設定しない（スキップ）":"Skip (no key)","スマホなど、キーボードがないときは、スキップして追加できます。キーは、あとから編集で設定できます。":"On phones or devices without a keyboard, you can skip this and set a key later by editing.","キーなしで保存します":"Will be saved without a key","通常":"General","試験運用機能":"Beta","試験運用機能です。予期せぬ動作や不具合が起きる可能性があります。":"These are experimental features. Unexpected behavior or bugs may occur.","フォント":"Font","フォントを選ぶ":"Choose font","初期のフォントに戻す":"Reset font","使用中: 標準のフォント":"Using: default font","フォントを設定しました。":"Font applied.","標準のフォントに戻しました。":"Font reset to default.","好きなフォントファイル（.otf / .ttf / .ttc）を選ぶと、アプリ全体の文字に使えます。このフォントは、この端末だけに保存されます。.ttc（コレクション）は、先頭のフォントを使います。":"Choose a font file (.otf / .ttf / .ttc) to use for all text in the app. The font is stored on this device only. For .ttc collections, the first font is used.","Googleで続行":"Continue with Google","Discordで続行":"Continue with Discord","または":"or","続行すると、利用規約とプライバシーポリシーに同意したものとみなします。初めての方も、ここから登録できます。":"By continuing you agree to the Terms and Privacy Policy. New users can sign up here too.","録音して追加":"Record & add","マイクで録音して、そのままサウンドに追加できます（最大60秒）。":"Record with your microphone and add it as a sound (up to 60 sec).","● 録音開始":"● Start recording","■ 停止":"■ Stop","● もう一度録音":"● Record again","サウンドとして追加":"Add as sound","マイクを使えませんでした。ブラウザの許可を確認してください。":"Could not use the microphone. Check browser permission.","録音を処理できませんでした。":"Could not process the recording."};
+  const RULES=[
+[/^「([\s\S]+?)」を削除しますか？[\s\S]*$/,r=>`Delete "${r[1]}"?\n(If it is saved in the cloud, it will also be deleted from the cloud.)`],
+[/^「([\s\S]+?)」の公開を削除しますか？[\s\S]*$/,r=>`Remove "${r[1]}" from public sounds?\n(The sound on your own board will remain.)`],
+[/^(\d+)件を自分のボードに追加しました。$/,r=>`Added ${r[1]} sound(s) to your board.`],
+[/^(\d+)位　([\s\S]+)$/,r=>`#${r[1]}  ${r[2]}`],
+[/^作者: ([\s\S]+?)　DL (\d+)　([\d.]+)MB$/,r=>`Author: ${r[1]}  ·  ${r[2]} downloads  ·  ${r[3]}MB`],
+[/^作者: ([\s\S]+?)　ライセンス: ([\s\S]+)$/,r=>`Author: ${r[1]}  ·  License: ${trCore(r[2])}`],
+[/^ライセンス: ([\s\S]+)$/,r=>`License: ${trCore(r[1])}`],
+[/^登録日: ([\s\S]+)$/,r=>`Registered: ${r[1]}`],
+[/^タグ: #([\s\S]+?)（もう一度押すと解除）$/,r=>`Tag: #${r[1]} (press again to clear)`],
+[/^現在のファイル：([\s\S]+)$/,r=>`Current file: ${r[1]}`],
+[/^「([\s\S]+)」を報告します。[\s\S]*$/,r=>`Reporting "${r[1]}". If you are the rights holder, please include a contact email.`],
+[/^([\s\S]+?) 宛に認証コードを送信しました[\s\S]*$/,r=>`A verification code was sent to ${r[1]} (check your spam folder if it does not arrive).`],
+[/^([\s\S]+?) が登録されている場合、認証コードを送信しました。$/,r=>`If ${r[1]} is registered, a verification code was sent.`],
+[/^「([\s\S]+)」\s*を追加しました。[\s\S]*$/,r=>`Added "${r[1]}".`]];
+  const PARTS=[[/使用中: /,"Using: "],[/この端末の使用量: ([\d.]+)MB/,"Used on this device: $1MB"],[/割り当て済み（(\d+)）/,"Assigned ($1)"],[/未設定（(\d+)）/,"Not set ($1)"],[/(\d+)件のサウンドを読み込みました。/,"Imported $1 sound(s)."],[/（キーが重複した(\d+)件は未設定にしました）/," ($1 with duplicate keys left unassigned)"],[/（(\d+)件・1ファイル最大([\d.]+)MB）/g," ($1 items, max $2MB per file)"],[/ ／ 未アップロード (\d+)件/g," / $1 not uploaded"],[/ ／ 最終同期 /g," / Last sync "]];
+  function trCore(c){
+    if(EN[c])return EN[c];
+    const e=c.match(/^([\s\S]*?)（エラーコード: (\d+)）$/);if(e)return trCore(e[1])+` (Error code: ${e[2]})`;
+    const pm=c.match(/^([^\p{L}\p{N}]+)([\s\S]+)$/u);if(pm&&EN[pm[2]])return pm[1]+EN[pm[2]];
+    for(const[re,f]of RULES){const r=c.match(re);if(r)return f(r)}
+    let o=c;for(const[re,rp]of PARTS)o=o.replace(re,rp);return o;
+  }
+  function tr(s){
+    if(!s||!/[぀-ヿ一-鿿]/.test(s))return s;
+    const m=s.match(/^(\s*)([\s\S]*?)(\s*)$/),o=trCore(m[2]);return o===m[2]?s:m[1]+o+m[3];
+  }
+  function trNode(n){
+    if(n.nodeType===3){const p=n.parentNode;if(p&&/^(SCRIPT|STYLE|TEXTAREA)$/.test(p.nodeName))return;const t=tr(n.nodeValue);if(t!==n.nodeValue)n.nodeValue=t}
+    else if(n.nodeType===1&&!/^(SCRIPT|STYLE)$/.test(n.nodeName)){
+      for(const a of["placeholder","title","aria-label"])if(n.hasAttribute(a)){const v=n.getAttribute(a),t=tr(v);if(t!==v)n.setAttribute(a,t)}
+      n.childNodes.forEach(trNode);
+    }
+  }
+  document.documentElement.lang="en";trNode(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==="childList")m.addedNodes.forEach(trNode);else trNode(m.target)}}).observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:["placeholder","title"]});
+}
+/* ===== Play settings / startup volume / key map / backup / admin ===== */
+const PLAY=Object.assign({mode:"exclusive",repeat:false,startVol:null},(()=>{try{return JSON.parse(localStorage.getItem("sb_play")||"{}")}catch(_){return{}}})());
+const savePlay=()=>{try{localStorage.setItem("sb_play",JSON.stringify(PLAY))}catch(_){}};
+let volDone=false;const _gs=getSetting;getSetting=k=>{if(k==="volume"&&!volDone&&PLAY.startVol!=null){volDone=true;return Promise.resolve(PLAY.startVol/100)}return _gs(k)};
+$("setBox").addEventListener("change",e=>{if(e.target.id==="stVol"){PLAY.startVol=e.target.value===""?null:Number(e.target.value);savePlay();toast("起動時の音量を設定しました。")}});
+const ovl=new Set();
+function playOverlap(s,toggle){
+  const mine=[...ovl].filter(o=>o.id===s.id);
+  if(toggle&&mine.length){mine.forEach(o=>o.stop());return}
+  if(!s.blob){toast("音声データがありません。");return}
+  stopPreview();pubStop();
+  const url=URL.createObjectURL(s.blob),a=new Audio(url),o={id:s.id,a};a.volume=masterVolume;
+  const ui=()=>{const on=[...ovl].some(x=>x.id===s.id),card=document.querySelector(`[data-id="${CSS.escape(s.id)}"]`),b=card&&card.querySelector(".play");if(!b)return;card.classList.toggle("playing",on);b.classList.toggle("active",on);b.textContent=on?"■  再生中":"▶  再生"};
+  o.stop=()=>{a.pause();ovl.delete(o);URL.revokeObjectURL(url);ui()};
+  ovl.add(o);a.onended=o.stop;ui();
+  a.play().catch(()=>{if(ovl.has(o)){o.stop();toast("音声を再生できませんでした。")}});
+}
+/* key map */
+const KROWS=[["1","2","3","4","5","6","7","8","9","0"].map(c=>"Digit"+c),..."QWERTYUIOP ASDFGHJKL ZXCVBNM".split(" ").map(r=>r.split("").map(c=>"Key"+c)),Array.from({length:12},(_,i)=>"F"+(i+1))];
+function openKeyMap(){
+  const used=new Map();sounds.forEach(s=>{if(s.key){if(!used.has(s.key))used.set(s.key,[]);used.get(s.key).push(s)}});
+  const box=$("keyBox"),kb=document.createElement("div"),line=(s)=>{const d=document.createElement("div");d.className="pcard";d.style.cssText="cursor:pointer;padding:9px 12px;margin-bottom:6px";d.dataset.k=s.id;d.textContent=(s.key?formatKey(s.key):"未設定")+"　"+s.name;return d};
+  box.innerHTML='<div class="modalHead"><h2>⌨️ キー割り当て一覧</h2><button class="close" data-k="close">×</button></div><div class="note">緑＝使用中、赤＝重複。クリックで編集できます。</div>';
+  kb.style.cssText="text-align:center;margin:10px 0 14px";
+  KROWS.forEach(r=>{const row=document.createElement("div");r.forEach(code=>{const c=document.createElement("span"),u=used.get(code);c.className="kcap"+(u?(u.length>1?" d":" u"):"");c.textContent=formatKey(code);if(u)c.title=u.map(x=>x.name).join(", ");row.appendChild(c)});kb.appendChild(row)});
+  box.appendChild(kb);
+  const sec=(t,items)=>{if(!items.length)return;const h=document.createElement("div");h.className="label";h.style.margin="10px 0 6px";h.textContent=t;box.appendChild(h);const w=document.createElement("div");w.style.cssText="max-height:26vh;overflow:auto";items.forEach(s=>w.appendChild(line(s)));box.appendChild(w)};
+  const dup=[...used].filter(([k,v])=>v.length>1).flatMap(([k,v])=>v),ok=sounds.filter(s=>s.key).sort((a,b)=>formatKey(a.key).localeCompare(formatKey(b.key)));
+  sec("重複しているキー",dup);sec(`割り当て済み（${ok.length}）`,ok);sec(`未設定（${sounds.length-ok.length}）`,sounds.filter(s=>!s.key));
+  $("keyBg").classList.add("show");
+}
+$("keyBox").addEventListener("click",e=>{const a=e.target.closest("[data-k]");if(!a)return;$("keyBg").classList.remove("show");if(a.dataset.k!=="close")openSoundModal(a.dataset.k)});
+$("keyBg").onclick=e=>{if(e.target===$("keyBg"))$("keyBg").classList.remove("show")};
+/* backup (ZIP, stored) */
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc32=u=>{let c=~0;for(let i=0;i<u.length;i++)c=CRC[(c^u[i])&255]^(c>>>8);return(~c)>>>0};
+function makeZip(files){
+  const parts=[],cd=[];let off=0;
+  for(const f of files){
+    const nm=enc.encode(f.name),crc=crc32(f.data),n=f.data.length,h=new DataView(new ArrayBuffer(30)),c=new DataView(new ArrayBuffer(46));
+    h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(12,0x21,true);h.setUint32(14,crc,true);h.setUint32(18,n,true);h.setUint32(22,n,true);h.setUint16(26,nm.length,true);
+    parts.push(h.buffer,nm,f.data);
+    c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(14,0x21,true);c.setUint32(16,crc,true);c.setUint32(20,n,true);c.setUint32(24,n,true);c.setUint16(28,nm.length,true);c.setUint32(42,off,true);
+    cd.push(c.buffer,nm);off+=30+nm.length+n;
+  }
+  const e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cd.reduce((a,b)=>a+b.byteLength,0),true);e.setUint32(16,off,true);
+  return new Blob([...parts,...cd,e.buffer],{type:"application/zip"});
+}
+async function readZip(file){
+  const buf=await file.arrayBuffer(),v=new DataView(buf),u=new Uint8Array(buf),out=new Map();let e=-1;
+  for(let i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-65557);i--)if(v.getUint32(i,true)===0x06054b50){e=i;break}
+  if(e<0)throw Error("zip");
+  const n=v.getUint16(e+10,true);let p=v.getUint32(e+16,true);
+  for(let i=0;i<n;i++){
+    if(v.getUint32(p,true)!==0x02014b50)throw Error("zip");
+    const method=v.getUint16(p+10,true),cs=v.getUint32(p+20,true),nl=v.getUint16(p+28,true),el=v.getUint16(p+30,true),cl=v.getUint16(p+32,true),lo=v.getUint32(p+42,true),name=new TextDecoder().decode(u.subarray(p+46,p+46+nl));
+    if(method!==0)throw Error("zip");
+    const ds=lo+30+v.getUint16(lo+26,true)+v.getUint16(lo+28,true);out.set(name,u.slice(ds,ds+cs));p+=46+nl+el+cl;
+  }
+  return out;
+}
+async function exportBackup(){
+  const files=[],meta=[];
+  for(const s of sounds){if(!s.blob)continue;const ext=((s.fileName||"").match(/\.[a-z0-9]+$/i)||[".wav"])[0].toLowerCase(),path="audio/"+s.id+ext;
+    files.push({name:path,data:new Uint8Array(await s.blob.arrayBuffer())});meta.push({name:s.name,key:s.key||"",fileName:s.fileName||"",file:path,type:s.blob.type||""})}
+  files.unshift({name:"manifest.json",data:enc.encode(JSON.stringify({app:"SoundButton",version:1,exported:new Date().toISOString(),sounds:meta}))});
+  const a=document.createElement("a"),u=URL.createObjectURL(makeZip(files));a.href=u;a.download="soundbutton-backup-"+new Date().toISOString().slice(0,10)+".zip";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000);
+  toast("バックアップを書き出しました。");
+}
+async function importBackup(file){
+  const ents=await readZip(file),man=ents.get("manifest.json");if(!man)throw Error("bad");
+  const m=JSON.parse(new TextDecoder().decode(man));if(m.app!=="SoundButton"||!Array.isArray(m.sounds))throw Error("bad");
+  let n=0,dup=0;
+  for(const it of m.sounds){
+    const d=typeof it.file==="string"&&it.file.startsWith("audio/")?ents.get(it.file):null;if(!d)continue;
+    const used=it.key&&sounds.some(s=>s.key===it.key),type=/^(audio\/|video\/mp4$)/.test(it.type||"")?it.type:"audio/wav";
+    await putSound({id:uid(),name:String(it.name||"sound").slice(0,60),key:used?"":String(it.key||""),fileName:String(it.fileName||""),blob:new Blob([d],{type}),owner:ownerKey(),order:sounds.length});
+    n++;if(used)dup++;sounds=await getAll();
+  }
+  render();toast(`${n}件のサウンドを読み込みました。`+(dup?`（キーが重複した${dup}件は未設定にしました）`:""));
+}
+$("bkFile").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;try{await importBackup(f)}catch(x){console.error(x);toast("バックアップを読み込めませんでした。")}};
+CODES.push(["バックアップを読み込めませんでした","113"],["バックアップを書き出せませんでした","113"],["管理操作に失敗しました","105"]);
+/* admin */
+let isAdmin=false,admF="open";
+async function checkAdmin(){try{isAdmin=!!(sb&&currentUser&&(await sb.rpc("is_admin")).data===true)}catch(_){isAdmin=false}}
+const CAT={copyright:"著作権",inappropriate:"不適切",spam:"迷惑・不正",other:"その他"};
+function openAdmin(){if(!isAdmin)return;admF="open";drawAdmin();$("admBg").classList.add("show");loadAdmin()}
+function drawAdmin(){
+  const T=(k,l)=>`<a data-a="f:${k}" class="${admF===k?"on":""}">${l}</a>`;
+  $("admBox").innerHTML=`<div class="modalHead"><h2>🛡 管理者画面（報告）</h2><button class="close" data-a="close">×</button></div><div class="tabs">${T("open","未対応")}${T("done","対応済み")}${T("dismissed","却下")}${T("all","すべて")}</div><div id="admList" style="max-height:60vh;overflow:auto"></div>`;
+}
+async function loadAdmin(){
+  const L=$("admList");if(!L)return;L.textContent="読み込み中…";
+  let q=sb.from("sound_reports").select("*").order("created_at",{ascending:false}).limit(50);if(admF!=="all")q=q.eq("status",admF);
+  const{data:rs,error}=await q;if(error){console.error(error);L.textContent="読み込みに失敗しました。";return}
+  const ids=[...new Set(rs.map(r=>r.public_sound_id).filter(Boolean))],by=new Map();
+  if(ids.length){const{data}=await sb.from("public_sounds").select("*").in("id",ids);(data||[]).forEach(s=>by.set(s.id,s))}
+  L.textContent=rs.length?"":"報告はありません。";
+  rs.forEach(r=>{
+    const s=by.get(r.public_sound_id),d=document.createElement("div"),mk=(c,t,st)=>{const x=document.createElement("div");if(c)x.className=c;x.textContent=t;if(st)x.style.cssText=st;return x},row=document.createElement("div");
+    d.className="pcard";row.className="prow";
+    const btn=(l,fn)=>{const b=document.createElement("button");b.className="sbtn";b.textContent=l;b.onclick=()=>fn(b);row.appendChild(b)};
+    const run=async(f)=>{const{error}=await f();if(error){console.error(error);toast("管理操作に失敗しました。")}else loadAdmin()};
+    d.append(mk("",`[${CAT[r.category]||r.category}] ${s?s.title:"（削除済みのサウンド）"}${s&&s.hidden?"　【非公開中】":""}`,"font-weight:700"),mk("sub",`作者: ${s?s.author_name:"-"}　報告日時: ${new Date(r.created_at).toLocaleString("ja-JP")}　状態: ${r.status}`),mk("note",r.reason,"margin:6px 0 0;white-space:pre-wrap"));
+    if(r.contact_email){const a=document.createElement("a");a.href="mailto:"+r.contact_email;a.textContent="連絡先: "+r.contact_email;a.className="sub";a.style.display="block";d.appendChild(a)}
+    if(s){
+      btn("▶ 試聴",b=>pubPreview(s,b));
+      btn(s.hidden?"公開に戻す":"非公開にする",()=>run(()=>sb.from("public_sounds").update({hidden:!s.hidden}).eq("id",s.id)));
+      btn("🗑 削除",async()=>{if(!await askConfirm(`「${s.title}」を削除しますか？\n音声ファイルも削除され、このサウンドへの報告も消えます。`,{title:"公開サウンドの削除",ok:"削除する",danger:true}))return;await sb.storage.from(PUB).remove([s.owner_id+"/"+s.id]);run(()=>sb.from("public_sounds").delete().eq("id",s.id))});
+    }
+    if(r.status!=="done")btn("✓ 対応済み",()=>run(()=>sb.from("sound_reports").update({status:"done"}).eq("id",r.id)));
+    if(r.status!=="dismissed")btn("✕ 却下",()=>run(()=>sb.from("sound_reports").update({status:"dismissed"}).eq("id",r.id)));
+    d.appendChild(row);L.appendChild(d);
+  });
+}
+$("admBox").addEventListener("click",e=>{const a=e.target.closest("[data-a]");if(!a)return;const v=a.dataset.a;if(v==="close"){pubStop();return $("admBg").classList.remove("show")}if(v.startsWith("f:")){admF=v.slice(2);drawAdmin();loadAdmin()}});
+$("admBg").onclick=e=>{if(e.target===$("admBg")){pubStop();$("admBg").classList.remove("show")}};
+/* ===== notification prefs / publish defaults / devices / cache / accessibility ===== */
+const rd=(k,d)=>{try{return Object.assign(d,JSON.parse(localStorage.getItem(k)||"{}"))}catch(_){return d}};
+const PUBDEF=rd("sb_pubdef",{author:"",lic:"personal"}),A11Y=rd("sb_a11y",{size:"1",motion:matchMedia("(prefers-reduced-motion: reduce)").matches,contrast:false});
+const saveA11y=()=>{try{localStorage.setItem("sb_a11y",JSON.stringify(A11Y))}catch(_){}};
+function applyA11y(){const r=document.documentElement;r.style.zoom=A11Y.size==="1"?"":A11Y.size;r.classList.toggle("rm",!!A11Y.motion);r.classList.toggle("hc",!!A11Y.contrast)}
+$("setBox").addEventListener("change",e=>{
+  if(e.target.id==="pdAuthor"||e.target.id==="pdLic"){PUBDEF.author=$("pdAuthor").value.trim();PUBDEF.lic=$("pdLic").value;try{localStorage.setItem("sb_pubdef",JSON.stringify(PUBDEF))}catch(_){}toast("設定を保存しました。")}
+});
+async function setMeta(p){const{data,error}=await sb.auth.updateUser({data:{...currentUser.meta,...p}});if(error)throw error;currentUser=toUser(data.user)}
+async function setNotif(v){
+  if(!sb||!currentUser)return toast("ログインが必要です。");
+  const[,k,val]=v.split(":");
+  try{await setMeta({["notif_"+k]:val});openSettings()}catch(e){console.error(e);toast("設定を保存できませんでした。")}
+}
+async function logoutOthers(){
+  if(!sb||!currentUser)return toast("ログインが必要です。");
+  if(!await askConfirm("このブラウザ以外でログイン中の端末を、すべてログアウトします。",{title:"ほかの端末をログアウト",ok:"ログアウトする",danger:true}))return;
+  const{error}=await sb.auth.signOut({scope:"others"});toast(error?"操作に失敗しました。":"ほかの端末をログアウトしました。");
+}
+async function localUsage(){return(await rawSounds()).filter(s=>s.owner===ownerKey()).reduce((a,s)=>a+(s.blob?s.blob.size:0),0)}
+async function rebuildCache(){
+  if(!sb||!currentUser)return toast("ログインが必要です。");
+  if(!await askConfirm("同期済みのサウンドをこの端末から削除し、クラウドから取得し直します。\n通信が発生します。表示がおかしいときに使ってください。",{title:"キャッシュの再取得",ok:"実行する"}))return;
+  stopCurrent();await purgeSynced(currentUser.id);sounds=await getAll();render();await cloudSync();toast("再取得しました。");openSettings();
+}
+CODES.push(["設定を保存できませんでした","102"],["ログインが必要です","111"]);
+applyA11y();
+/* ===== low-latency playback (Web Audio) ===== */
+let actx=null,bufBytes=0;const bufCache=new Map(),voices=new Set();
+function ensureCtx(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)({latencyHint:"interactive"});if(actx.state==="suspended")actx.resume();return actx}
+const bkey=s=>s.id+":"+(s.rev||"")+":"+(s.blob?s.blob.size:0);
+async function getBuf(s){
+  const k=bkey(s);let b=bufCache.get(k);if(b)return b;
+  b=await ensureCtx().decodeAudioData(await s.blob.arrayBuffer());bufBytes+=b.length*b.numberOfChannels*4;bufCache.set(k,b);
+  while(bufBytes>400*1048576&&bufCache.size>1){const[kk,vv]=bufCache.entries().next().value;bufCache.delete(kk);bufBytes-=vv.length*vv.numberOfChannels*4}
+  return b;
+}
+function voiceUi(id){const on=[...voices].some(v=>v.id===id),card=document.querySelector(`[data-id="${CSS.escape(id)}"]`),b=card&&card.querySelector(".play");if(!b)return;card.classList.toggle("playing",on);b.classList.toggle("active",on);b.textContent=on?"■  再生中":"▶  再生"}
+function startVoice(s,b){
+  const ac=ensureCtx(),src=ac.createBufferSource(),g=ac.createGain();src.buffer=b;g.gain.value=masterVolume;src.connect(g).connect(ac.destination);
+  const v={id:s.id,g,stop(){try{src.stop()}catch(_){}voices.delete(v);voiceUi(s.id)}};
+  src.onended=()=>{voices.delete(v);voiceUi(s.id)};voices.add(v);voiceUi(s.id);src.start();
+}
+function playVoice(s,toggle){
+  const mine=[...voices].filter(v=>v.id===s.id);
+  if(toggle&&mine.length){mine.forEach(v=>v.stop());return}
+  if(!s.blob){toast("音声データがありません。");return}
+  if(PLAY.mode!=="overlap")stopCurrent();
+  stopPreview();pubStop();
+  const b=bufCache.get(bkey(s));if(b)return startVoice(s,b);
+  getBuf(s).then(x=>startVoice(s,x)).catch(()=>legacyPlay(s,toggle));
+}
+function playSound(s,toggle){playVoice(s,toggle)}
+$("volume").addEventListener("input",()=>voices.forEach(v=>v.g.gain.value=masterVolume));
+let plT=0;function preloadAll(){const t=++plT;setTimeout(async()=>{for(const s of sounds){if(t!==plT)return;if(!s.blob||s.blob.size>6*1048576||bufCache.has(bkey(s)))continue;try{await getBuf(s)}catch(_){}}},300)}
+const _render=render;render=function(){_render.apply(this,arguments);preloadAll();syncBgKeys()};
+["pointerdown","keydown"].forEach(ev=>addEventListener(ev,()=>{if(actx&&actx.state==="suspended")actx.resume()},true));
+/* ===== drag to reorder ===== */
+let dg=null;
+board.addEventListener("pointerdown",e=>{
+  if(e.button>0)return;const card=e.target.closest(".card");if(!card||e.target.closest("button,a,input"))return;
+  const d=dg={card,id:card.dataset.id,x:e.clientX,y:e.clientY,pid:e.pointerId,touch:e.pointerType==="touch",on:false,timer:null};
+  if(d.touch)d.timer=setTimeout(()=>dgBegin(d,d.x,d.y),380);
+});
+function dgBegin(d,cx,cy){
+  if(dg!==d||d.on)return;d.on=true;const r=d.card.getBoundingClientRect(),ph=document.createElement("div");
+  ph.className="card ph";ph.style.height=r.height+"px";d.ph=ph;d.ox=cx-r.left;d.oy=cy-r.top;
+  d.card.parentNode.insertBefore(ph,d.card);d.card.classList.add("dragging");
+  d.card.style.cssText=`position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;z-index:300;pointer-events:none;opacity:.92;box-shadow:0 18px 40px rgba(0,0,0,.4);transform:scale(1.03)`;
+  try{navigator.vibrate&&navigator.vibrate(10)}catch(_){}
+}
+document.addEventListener("pointermove",e=>{
+  if(!dg||e.pointerId!==dg.pid)return;
+  if(!dg.on){const m=Math.hypot(e.clientX-dg.x,e.clientY-dg.y);if(dg.touch){if(m>10){clearTimeout(dg.timer);dg=null}}else if(m>8)dgBegin(dg,e.clientX,e.clientY);return}
+  e.preventDefault();const d=dg;d.card.style.left=(e.clientX-d.ox)+"px";d.card.style.top=(e.clientY-d.oy)+"px";
+  if(e.clientY<90)scrollBy(0,-14);else if(e.clientY>innerHeight-90)scrollBy(0,14);
+  const t=(document.elementFromPoint(e.clientX,e.clientY)||document.body).closest(".card");
+  if(t&&t!==d.card&&t!==d.ph&&t.parentNode===d.ph.parentNode){const r=t.getBoundingClientRect();d.ph.parentNode.insertBefore(d.ph,e.clientX<r.left+r.width/2?t:t.nextSibling)}
+},{passive:false});
+document.addEventListener("touchmove",e=>{if(dg&&dg.on)e.preventDefault()},{passive:false});
+async function dgEnd(cancel){
+  const d=dg;dg=null;if(!d)return;clearTimeout(d.timer);if(!d.on)return;
+  const ids=[...d.ph.parentNode.children].map(c=>c===d.ph?d.id:(c===d.card?null:c.dataset.id)).filter(Boolean);
+  d.ph.remove();d.card.classList.remove("dragging");d.card.style.cssText="";
+  if(!cancel){const by=new Map(sounds.map(s=>[s.id,s])),ch=[];ids.forEach((id,i)=>{const s=by.get(id);if(s&&s.order!==i){s.order=i;ch.push(s)}});if(ch.length)await putMany(ch);sounds=await getAll()}
+  render();
+}
+document.addEventListener("pointerup",e=>{if(dg&&e.pointerId===dg.pid)dgEnd(false)});
+document.addEventListener("pointercancel",e=>{if(dg&&e.pointerId===dg.pid)dgEnd(true)});
+/* ===== microphone recording ===== */
+let rec=null;
+const rq=s=>$("recBox").querySelector(s);
+function openRec(){
+  $("recBox").innerHTML=`<div class="modalHead"><h2>録音して追加</h2><button class="close" data-r="close">×</button></div><div class="note">マイクで録音して、そのままサウンドに追加できます（最大60秒）。</div><div class="bar"><i id="recLv"></i></div><div class="sub" id="recT" style="text-align:center">00:00</div>${F("recName","サウンド名","text",'maxlength="60"')}<audio id="recAu" controls style="width:100%;margin-top:8px;display:none"></audio><div class="err"></div><div class="modalButtons"><button class="cancel" data-r="start">● 録音開始</button><button class="confirm" data-r="save" disabled>サウンドとして追加</button></div>`;
+  $("recBg").classList.add("show");
+}
+async function recToggle(){
+  if(rec&&rec.mr&&rec.mr.state==="recording"){rec.mr.stop();return}
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    const ac=ensureCtx(),src=ac.createMediaStreamSource(stream),an=ac.createAnalyser(),mr=new MediaRecorder(stream),chunks=[],t0=Date.now(),buf=new Uint8Array(512);
+    an.fftSize=512;src.connect(an);rec={mr,stream,wav:null};
+    const tick=()=>{if(!rec||mr.state!=="recording")return;an.getByteTimeDomainData(buf);let m=0;for(const v of buf)m=Math.max(m,Math.abs(v-128));rq("#recLv").style.width=Math.min(100,m/128*140)+"%";const s=(Date.now()-t0)/1000;rq("#recT").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(Math.floor(s%60)).padStart(2,"0");if(s>=60)mr.stop();requestAnimationFrame(tick)};
+    mr.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+    mr.onstop=async()=>{
+      stream.getTracks().forEach(t=>t.stop());try{src.disconnect()}catch(_){}
+      if(!rec||!$("recBg").classList.contains("show"))return;
+      rq("#recLv").style.width="0";rq("[data-r=start]").textContent="● もう一度録音";
+      try{const blob=new Blob(chunks,{type:mr.mimeType||"audio/webm"}),b=await ac.decodeAudioData(await blob.arrayBuffer()),wav=wavBlob(b),au=rq("#recAu");rec.wav=wav;au.src=URL.createObjectURL(wav);au.style.display="block";rq("[data-r=save]").disabled=false}
+      catch(e){console.error(e);toast("録音を処理できませんでした。")}
+    };
+    mr.start();rq("[data-r=start]").textContent="■ 停止";rq("[data-r=save]").disabled=true;tick();
+  }catch(e){console.error(e);toast("マイクを使えませんでした。ブラウザの許可を確認してください。")}
+}
+async function recSave(){
+  if(!rec||!rec.wav)return;const name=$("recName").value.trim()||"録音 "+new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"}),id=uid(),wav=rec.wav;
+  await putSound({id,name,key:"",fileName:name.replace(/[\\/:*?"<>|]/g,"_")+".wav",blob:wav,owner:ownerKey(),order:sounds.length});
+  sounds=await getAll();render();recClose();openSoundModal(id,true);
+}
+function recClose(){
+  if(rec&&rec.mr&&rec.mr.state==="recording"){rec.mr.stop();rec.stream.getTracks().forEach(t=>t.stop())}
+  const au=$("recAu");if(au){au.pause();if(au.src)URL.revokeObjectURL(au.src)}
+  rec=null;$("recBg").classList.remove("show");
+}
+$("recBtn").onclick=openRec;
+$("recBox").addEventListener("click",async e=>{const a=e.target.closest("[data-r]");if(!a)return;const v=a.dataset.r;if(v==="close")recClose();else if(v==="start")recToggle();else if(v==="save"){a.disabled=true;try{await recSave()}catch(x){console.error(x);toast("保存に失敗しました。")}}});
+$("recBg").onclick=e=>{if(e.target===$("recBg"))recClose()};
+/* ===== OAuth / captcha ===== */
+async function oauth(provider){
+  if(!window.electronApp&&!/^https?:$/.test(location.protocol))return err(authBox,"Google・Discordでのログインは、公開したURLから使えます。");
+  remember=$("aRem")?$("aRem").checked:true;
+  try{localStorage.setItem("sb_oauth_rem",remember?"1":"0");if($("aMove")&&$("aMove").checked)localStorage.setItem("sb_oauth_move","1")}catch(_){}
+  const el=window.electronApp,{data,error}=await sb.auth.signInWithOAuth({provider,options:{redirectTo:el?"soundbutton://auth":location.origin+location.pathname,skipBrowserRedirect:!!el}});
+  if(error)return err(authBox,msgOf(error));
+  if(el&&data&&data.url)el.openExternal(data.url);
+}
+const TS_KEY="";   // ← Cloudflare Turnstile の「サイトキー」をここに貼る（空欄ならボット対策は無効）
+let cfTok=null,cfId=null;
+const cap=()=>TS_KEY?{captchaToken:cfTok||undefined}:undefined;
+const capReset=()=>{cfTok=null;try{window.turnstile&&cfId!=null&&turnstile.reset(cfId)}catch(_){}};
+function loadTS(){return window.turnstile?Promise.resolve():new Promise((res,rej)=>{const s=document.createElement("script");s.src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
+function mountCaptcha(box){
+  if(!TS_KEY)return;const e=box.querySelector(".err");if(!e)return;
+  e.insertAdjacentHTML("beforebegin",'<div id="cfBox" style="margin:8px 0"></div>');
+  loadTS().then(()=>{cfTok=null;cfId=turnstile.render("#cfBox",{sitekey:TS_KEY,theme:document.documentElement.dataset.theme==="light"?"light":"dark",callback:t=>{cfTok=t},"expired-callback":()=>{cfTok=null},"error-callback":()=>{cfTok=null}})}).catch(()=>{});
+}
+{const _sa=showAuth;showAuth=function(v){_sa(v);if(["login","register","forgot","verify"].includes(v))mountCaptcha(authBox)};
+ const _sc=showAcct;showAcct=function(t){_sc(t);if(t==="pw"||t==="del")mountCaptcha(acctBox)}}
+CODES.push(["ボット対策","115"],["録音を処理できませんでした","108"],["マイクを使えませんでした","108"]);
+/* ===== Beta tab / custom font ===== */
+let setTab="main",uFace=null;
+function ttcFirst(ab){
+  const v=new DataView(ab);if(v.getUint32(0)!==0x74746366)return ab;
+  const off=v.getUint32(12),n=v.getUint16(off+4),recs=[];
+  for(let i=0;i<n;i++){const r=off+12+i*16;recs.push({tag:v.getUint32(r),cs:v.getUint32(r+4),o:v.getUint32(r+8),l:v.getUint32(r+12)})}
+  let pos=12+16*n;recs.forEach(r=>{r.no=pos;pos+=(r.l+3)&~3});
+  const nb=new Uint8Array(pos),nv=new DataView(nb.buffer);nb.set(new Uint8Array(ab,off,12));
+  recs.forEach((r,i)=>{const d=12+i*16;nv.setUint32(d,r.tag);nv.setUint32(d+4,r.cs);nv.setUint32(d+8,r.no);nv.setUint32(d+12,r.l);nb.set(new Uint8Array(ab,r.o,r.l),r.no)});
+  return nb.buffer;
+}
+async function applyFont(blob){
+  const f=new FontFace("SBUser",await blob.arrayBuffer());await f.load();
+  document.fonts.add(f);if(uFace)document.fonts.delete(uFace);uFace=f;document.documentElement.classList.add("ufont");
+}
+async function loadUserFont(){try{const r=await getSetting("font");if(r&&r.blob)await applyFont(r.blob)}catch(e){console.error(e)}}
+async function resetFont(){
+  if(uFace){document.fonts.delete(uFace);uFace=null}document.documentElement.classList.remove("ufont");
+  await setSetting("font",null);toast("標準のフォントに戻しました。");openBeta();
+}
+$("fontFile").onchange=async e=>{
+  const f=e.target.files[0];e.target.value="";if(!f)return;
+  if(!/\.(otf|ttf|ttc)$/i.test(f.name))return toast("対応しているのは .otf / .ttf / .ttc のフォントです。");
+  if(f.size>30*1048576)return toast("フォントのサイズが大きすぎます（30MBまで）。");
+  try{
+    let ab=await f.arrayBuffer();if(/\.ttc$/i.test(f.name)||new DataView(ab).getUint32(0)===0x74746366)ab=ttcFirst(ab);
+    const blob=new Blob([ab],{type:"font/ttf"});await applyFont(blob);await setSetting("font",{name:f.name,blob});toast("フォントを設定しました。");openBeta();
+  }catch(x){console.error(x);toast("フォントを読み込めませんでした。")}
+};
+const _os=openSettings;
+openSettings=function(){_os();const l=$("setBox").querySelector('[data-s="ja"]');if(l)l.closest(".field").remove();
+  if(window.electronApp){const f=$("setBox").querySelector('[data-s="mode:exclusive"]').closest(".field"),on=c=>c?"on":"";
+    f.insertAdjacentHTML("afterend",`<div class="field"><label class="label">バックグラウンドでのキー入力（Windowsアプリ版）</label><div class="tabs"><a data-s="bg:on" class="${on(PLAY.bg)}">オン</a><a data-s="bg:off" class="${on(!PLAY.bg)}">オフ</a></div><div class="note">他のアプリやゲームを使っている間も、割り当てたキーで音を鳴らせます。割り当てたキー以外の入力は、読み取りも保存もしません。ウィンドウの「×」を押すとアプリが終了するので、ほかのアプリを使うときは、ウィンドウを最小化してください。</div></div>`)}
+};
+$("setBtn").onclick=()=>openSettings();
+function openBeta(){
+  const on=c=>c?"on":"";
+  $("betaBox").innerHTML=`<div class="modalHead"><h2>試験運用機能</h2><button class="close" data-b="close">×</button></div><div class="note" style="margin-bottom:12px">試験運用機能です。予期せぬ動作や不具合が起きる可能性があります。</div>
+  <div class="field"><label class="label">言語 / Language</label><div class="tabs"><a data-b="ja" class="${on(LANG==="ja")}">日本語</a><a data-b="en" class="${on(LANG==="en")}">English (Beta)</a></div><div class="note">English表示は試験運用機能です。一部の文章は日本語のまま表示されます。</div></div>
+  <div class="field"><label class="label">フォント</label><div class="note">好きなフォントファイル（.otf / .ttf / .ttc）を選ぶと、アプリ全体の文字に使えます。このフォントは、この端末だけに保存されます。.ttc（コレクション）は、先頭のフォントを使います。</div><div class="prow"><button class="sbtn" data-b="fontpick">フォントを選ぶ</button><button class="sbtn" data-b="fontreset">初期のフォントに戻す</button></div><div class="sub" id="fontName" style="margin-top:8px"></div></div>`;
+  getSetting("font").then(r=>{const e=$("fontName");if(e)e.textContent=r&&r.name?"使用中: "+r.name:"使用中: 標準のフォント"});
+  $("betaBg").classList.add("show");
+}
+$("betaBox").addEventListener("click",e=>{const a=e.target.closest("[data-b]");if(!a)return;const v=a.dataset.b;
+  if(v==="close")$("betaBg").classList.remove("show");else if(v==="ja"||v==="en")setLang(v);else if(v==="fontpick")$("fontFile").click();else if(v==="fontreset")resetFont()});
+$("betaBg").onclick=e=>{if(e.target===$("betaBg"))$("betaBg").classList.remove("show")};
+$("betaBtn").onclick=openBeta;
+CODES.push(["対応しているのは","104"],["フォントのサイズが大きすぎます","103"],["フォントを読み込めませんでした","104"]);
+/* ===== Windows app: background key input ===== */
+function syncBgKeys(){if(window.electronApp&&electronApp.setBackgroundKeys)electronApp.setBackgroundKeys(!!PLAY.bg,sounds.filter(x=>x.key).map(x=>x.key))}
+if(window.electronApp&&electronApp.onGlobalKey)electronApp.onGlobalKey(d=>{if(!PLAY.bg||!d)return;const t=sounds.find(x=>x.key===d.combo);if(t&&(!d.repeat||PLAY.repeat))playSound(t)});
+{const E={"バックグラウンドでのキー入力（Windowsアプリ版）":"Background key input (Windows app)"};}
+</script>
+</body>
+</html>
