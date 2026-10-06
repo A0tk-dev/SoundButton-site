@@ -1,2 +1,2 @@
 # SoundButton-site
-SoundButtonのサイト
+SoundButtonのサイトです
